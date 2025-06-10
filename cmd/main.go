@@ -37,6 +37,7 @@ func main() {
 	}
 	defer discord.DiscordSession.Close()
 
+	log.Println("Bot Online")
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 	<-stop
