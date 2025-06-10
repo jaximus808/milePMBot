@@ -24,18 +24,18 @@ func main() {
 		return
 	}
 
-	discordSession, discErr := discord.InitalizeDiscordGo()
+	discErr := discord.InitalizeDiscordGo()
 
 	if discErr != nil {
 		fmt.Print(discErr.Error())
 	}
-	discordSession.AddHandler(functions.MainHandler)
+	discord.DiscordSession.AddHandler(functions.MainHandler)
 
-	openErr := discordSession.Open()
+	openErr := discord.DiscordSession.Open()
 	if openErr != nil {
 		log.Fatalf("Cannot open the session: %v", openErr)
 	}
-	defer discordSession.Close()
+	defer discord.DiscordSession.Close()
 
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)

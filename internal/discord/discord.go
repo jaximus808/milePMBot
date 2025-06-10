@@ -6,14 +6,17 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func InitalizeDiscordGo() (*discordgo.Session, error) {
+var DiscordSession *discordgo.Session
+
+func InitalizeDiscordGo() error {
 
 	session, err := discordgo.New("Bot " + os.Getenv("DISCORD_BOT_TOKEN"))
 
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	session.Identify.Intents = discordgo.IntentsGuildMessages | discordgo.IntentsMessageContent | discordgo.IntentsGuilds
-	return session, nil
+	DiscordSession = session
+	return nil
 }

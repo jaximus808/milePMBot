@@ -6,5 +6,11 @@ import (
 )
 
 func HandleCommand(msgInstance *discordgo.MessageCreate, args []string) *util.HandleReport {
-	return util.CreateHandleReport(false, "Not yet implemnted")
+	if len(args) == 0 {
+		return util.CreateHandleReport(false, "Needs arguments :(")
+	}
+	command := args[0]
+
+	//calls the command and removes the first element since we don't need it
+	return commandMap[command](msgInstance, args)
 }
