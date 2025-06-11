@@ -11,6 +11,12 @@ func HandleCommand(msgInstance *discordgo.MessageCreate, args []string) *util.Ha
 	}
 	command := args[0]
 
+	commandMethod, exists := commandMap[command]
+
+	if !exists {
+		return util.CreateHandleReport(false, "didn't recongize command: "+command)
+	}
+
 	//calls the command and removes the first element since we don't need it
-	return commandMap[command](msgInstance, args[1:])
+	return commandMethod(msgInstance, args[1:])
 }

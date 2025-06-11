@@ -53,7 +53,7 @@ func SetUpProjectInfo(msgInstance *discordgo.MessageCreate) (*Project, *HandleRe
 		return nil, CreateHandleReport(false, "channel failed!")
 	}
 
-	if channel.Type != 4 {
+	if channel.Type != discordgo.ChannelTypeGuildCategory {
 		return nil, CreateHandleReport(false, "message must be in a category!")
 	}
 
@@ -63,6 +63,46 @@ func SetUpProjectInfo(msgInstance *discordgo.MessageCreate) (*Project, *HandleRe
 		return nil, CreateHandleReport(false, "failed to make project")
 	}
 	return project, nil
+}
+
+/**
+Active Project Methods
+*/
+
+func DBCreateActiveProject(guildId string, pchannelId string, projectId int) (*ActiveProject, error) {
+	var selectedActiveProject ActiveProject
+	insertedActiveProject := ActiveProjectInsert{
+		GuildID:    ptrString(guildId),
+		PChannelID: ptrString(pchannelId),
+		ProjectID:  ptrInt(projectId),
+	}
+	res, _, err := supabaseutil.Client.From("ActiveProjects").Insert(insertedActiveProject, false, "", "representation", "").Single().Execute()
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &selectedActiveProject)
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	return &selectedActiveProject, nil
+}
+
+func DBGetActiveProject(guildId string, pchannelId string) (*ActiveProject, error) {
+	var selectedActiveProject ActiveProject
+
+	res, _, err := supabaseutil.Client.From("ActiveProjects").Select("*", "", false).Eq("pChannelId", pchannelId).Eq("guildId", guildId).Single().Execute()
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &selectedActiveProject)
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	return &selectedActiveProject, nil
 }
 
 /**
@@ -77,7 +117,7 @@ func DBCreateProject(guildId string, pchannelId string, outoutChannelId string) 
 		SprintMsg:     ptrString("Sprint Message: "),
 		OutputChannel: ptrString(outoutChannelId),
 	}
-	res, _, err := supabaseutil.Client.From("Projects").Insert(insertedProject, false, "", "Projects", "*").Single().Execute()
+	res, _, err := supabaseutil.Client.From("Projects").Insert(insertedProject, false, "", "representation", "").Single().Execute()
 	if err != nil {
 		log.Printf("Error unmarshaling response: %v", err)
 		return nil, err
@@ -95,7 +135,7 @@ func DBGetProject(guildId string, pchannelId string) (*Project, error) {
 	var activeProject ActiveProject
 
 	//gets the active project
-	activeRes, _, err := supabaseutil.Client.From("ActiveProjects").Select("*", "exact", false).Eq("pChannelId", pchannelId).Eq("guildId", guildId).Single().Execute()
+	activeRes, _, err := supabaseutil.Client.From("ActiveProjects").Select("*", "", false).Eq("pChannelId", pchannelId).Eq("guildId", guildId).Single().Execute()
 	if err != nil {
 		log.Printf("Error unmarshaling response: %v", err)
 		return nil, err
@@ -107,7 +147,7 @@ func DBGetProject(guildId string, pchannelId string) (*Project, error) {
 	}
 
 	//gets the active project
-	projectRes, _, err := supabaseutil.Client.From("Projects").Select("*", "exact", false).Eq("id", strconv.Itoa(activeProject.ID)).Execute()
+	projectRes, _, err := supabaseutil.Client.From("Projects").Select("*", "", false).Eq("id", strconv.Itoa(activeProject.ID)).Execute()
 	if err != nil {
 		log.Printf("Error unmarshaling response: %v", err)
 		return nil, err
@@ -127,7 +167,7 @@ func DBUpdateCurrentMilestone(projectId int, milestoneId int) (*Project, error) 
 	insertedProject := ProjectInsert{
 		CurrentMID: &milestoneId,
 	}
-	res, _, err := supabaseutil.Client.From("Projects").Update(insertedProject, "Projects", "").Single().Execute()
+	res, _, err := supabaseutil.Client.From("Projects").Update(insertedProject, "*", "").Single().Execute()
 	if err != nil {
 		log.Printf("Error unmarshaling response: %v", err)
 		return nil, err
@@ -150,7 +190,7 @@ func DBCreateMilestone(projectId int, msName string, msDeadline *time.Time, msDe
 		DueDate:     msDeadline,
 		Description: &msDes,
 	}
-	res, _, err := supabaseutil.Client.From("Milestones").Insert(insertedMilestone, false, "", "Milestones", "*").Single().Execute()
+	res, _, err := supabaseutil.Client.From("Milestones").Insert(insertedMilestone, false, "", "representation", "").Single().Execute()
 	if err != nil {
 		log.Printf("Error unmarshaling response: %v", err)
 		return nil, err
@@ -165,7 +205,7 @@ func DBCreateMilestone(projectId int, msName string, msDeadline *time.Time, msDe
 
 func DBGetMilestoneWithId(milestoneID int) (*Milestone, error) {
 	var selectedMilestone Milestone
-	res, _, err := supabaseutil.Client.From("Milestones").Select("*", "exact", false).Eq("id", strconv.Itoa(milestoneID)).Single().Execute()
+	res, _, err := supabaseutil.Client.From("Milestones").Select("*", "", false).Eq("id", strconv.Itoa(milestoneID)).Single().Execute()
 	if err != nil {
 		log.Printf("Error unmarshaling response: %v", err)
 		return nil, err
@@ -184,7 +224,7 @@ func DBGetNextMilestone(projectId int, curMilstone *Milestone) (*Milestone, erro
 
 	orderOptions.Ascending = true
 
-	res, _, err := supabaseutil.Client.From("Milestones").Select("*", "exact", false).Eq("project_id", strconv.Itoa(projectId)).Gt("due_date", strconv.Itoa(int(curMilstone.DueDate.Unix()))).Order("due_date", orderOptions).Limit(1, "Milestones").Single().Execute()
+	res, _, err := supabaseutil.Client.From("Milestones").Select("*", "", false).Eq("project_id", strconv.Itoa(projectId)).Gt("due_date", strconv.Itoa(int(curMilstone.DueDate.Unix()))).Order("due_date", orderOptions).Limit(1, "Milestones").Single().Execute()
 
 	if err != nil {
 		return nil, err
@@ -202,7 +242,7 @@ func DBGetPrevMilestone(projectId int, curMilstone *Milestone) (*Milestone, erro
 
 	orderOptions.Ascending = false
 
-	res, _, err := supabaseutil.Client.From("Milestones").Select("*", "exact", false).Eq("project_id", strconv.Itoa(projectId)).Lt("due_date", strconv.Itoa(int(curMilstone.DueDate.Unix()))).Order("due_date", orderOptions).Limit(1, "Milestones").Single().Execute()
+	res, _, err := supabaseutil.Client.From("Milestones").Select("*", "", false).Eq("project_id", strconv.Itoa(projectId)).Lt("due_date", strconv.Itoa(int(curMilstone.DueDate.Unix()))).Order("due_date", orderOptions).Limit(1, "Milestones").Single().Execute()
 
 	if err != nil {
 		return nil, err
@@ -220,7 +260,7 @@ func DBCreateRole(projectId int, userId string, roleLevel int) (*Role, error) {
 		DiscordID: &userId,
 		RoleLevel: roleLevel,
 	}
-	res, _, err := supabaseutil.Client.From("Roles").Insert(insertedRole, false, "", "Roles", "*").Single().Execute()
+	res, _, err := supabaseutil.Client.From("Roles").Insert(insertedRole, false, "", "representation", "").Single().Execute()
 	if err != nil {
 		log.Printf("Error unmarshaling response: %v", err)
 		return nil, err

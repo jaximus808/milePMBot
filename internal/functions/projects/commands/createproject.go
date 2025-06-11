@@ -11,6 +11,8 @@ import (
 
 func CreateProject(msgInstance *discordgo.MessageCreate, args []string) *util.HandleReport {
 
+	// TODO: MUST ADD A CHECK THAT THERE IS NO ALREADY ACTIVE PROJECT
+
 	if msgInstance.GuildID == "" {
 		return util.CreateHandleReport(false, "Not in a discord server")
 	}
@@ -24,21 +26,28 @@ func CreateProject(msgInstance *discordgo.MessageCreate, args []string) *util.Ha
 		return util.CreateHandleReport(false, "channel failed!")
 	}
 
-	if channel.Type != 4 {
+	if channel.ParentID == "" {
 		return util.CreateHandleReport(false, "message must be in a category!")
-	}
-
-	project, insertErr := util.DBCreateProject(channel.GuildID, channel.ParentID, msgInstance.ChannelID)
-
-	if insertErr != nil || project == nil {
-		return util.CreateHandleReport(false, "failed to make project")
 	}
 
 	msName := args[0]
 	msDate, dateError := time.Parse("01/02/2006", args[1])
 	msDesc := strings.Join(args[2:], " ")
 	if dateError != nil {
-		return util.CreateHandleReport(false, "incorrect date format, expect MM/DD/YYYY")
+		return util.CreateHandleReport(false, "incorrect date format, expect MM/DD/YYYY: "+dateError.Error())
+	}
+
+	// first check if an active project exists
+
+	_, checkActiveProject := util.DBGetActiveProject(channel.GuildID, channel.ParentID)
+
+	if checkActiveProject == nil {
+		return util.CreateHandleReport(false, "There already is an active project for this category!")
+	}
+	project, insertErr := util.DBCreateProject(channel.GuildID, channel.ParentID, msgInstance.ChannelID)
+
+	if insertErr != nil || project == nil {
+		return util.CreateHandleReport(false, "failed to make project")
 	}
 
 	// now add milestones
@@ -52,6 +61,13 @@ func CreateProject(msgInstance *discordgo.MessageCreate, args []string) *util.Ha
 	if roleError != nil || userRole == nil {
 		return util.CreateHandleReport(false, "failed to make user role tied to project")
 	}
+	//I NEEED TO ADD SOME TIME OF FAILURE ROLLBACK
 
+	// everything good, now assign this project as an active project
+	activeProject, activeProjctError := util.DBCreateActiveProject(channel.GuildID, channel.ParentID, project.ID)
+
+	if activeProjctError != nil || activeProject == nil {
+		return util.CreateHandleReport(false, "failed to create an active project :(")
+	}
 	return util.CreateHandleReport(true, "Successfully added project!")
 }
