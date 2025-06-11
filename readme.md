@@ -300,10 +300,10 @@ Below will list out the usuage for tasks for a given project
 
 ### Create Tasks (Leads and Admins) (WIP)
 
-Create a task for the a given milestone 
+Create a task for the current milestone
 
 ``` 
- !task add [task name] [desc] [milestone_id]
+ !task add [task name] [desc] 
 ``` 
 
 This command will give you a task_ref that has no spaces, where you will use to assign the task later

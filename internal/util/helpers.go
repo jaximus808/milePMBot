@@ -2,6 +2,7 @@ package util
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"strconv"
 	"time"
@@ -253,6 +254,12 @@ func DBGetPrevMilestone(projectId int, curMilstone *Milestone) (*Milestone, erro
 	}
 	return &prevMilestone, nil
 }
+
+/*
+*
+
+	Role comamands
+*/
 func DBCreateRole(projectId int, userId string, roleLevel int) (*Role, error) {
 	var selectedRole Role
 	insertedRole := RoleInsert{
@@ -272,4 +279,48 @@ func DBCreateRole(projectId int, userId string, roleLevel int) (*Role, error) {
 	}
 
 	return &selectedRole, nil
+}
+
+func DBGetRole(projectId int, userId string) (*Role, error) {
+	var selectedRole Role
+
+	res, _, err := supabaseutil.Client.From("Roles").Select("*", "", false).Eq("discord_id", userId).Eq("project_id", strconv.Itoa(projectId)).Single().Execute()
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &selectedRole)
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+
+	return &selectedRole, nil
+}
+
+/*
+	Task commands
+*/
+
+func DBCreateTasks(projectId int, task_name string, desc string, milestone_id int) (*Task, error) {
+	var newTask Task
+	insertedTask := TaskInsert{
+		TaskName:    &task_name,
+		TaskRef:     ptrString(fmt.Sprintf("milestone%d/%s", milestone_id, task_name)),
+		ProjectID:   &projectId,
+		Desc:        &desc,
+		MilestoneID: &milestone_id,
+	}
+	res, _, err := supabaseutil.Client.From("Tasks").Insert(insertedTask, false, "", "representation", "").Single().Execute()
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &newTask)
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+
+	return &newTask, nil
 }

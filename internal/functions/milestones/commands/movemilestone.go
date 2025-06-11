@@ -41,12 +41,8 @@ func MoveMilestone(msgInstance *discordgo.MessageCreate, args []string) *util.Ha
 		newMilestone, errorNewMilestone = util.DBGetPrevMilestone(currentMilestone.ID, currentMilestone)
 	}
 
-	if errorNewMilestone != nil {
-		return util.CreateHandleReport(false, errorNewMilestone.Error())
-	}
-
-	if newMilestone == nil {
-		return util.CreateHandleReport(false, "failed to get new milestone")
+	if errorNewMilestone != nil || newMilestone == nil {
+		return util.CreateHandleReport(false, "Could not get "+direction+" project")
 	}
 
 	newProject, newProjectError := util.DBUpdateCurrentMilestone(currentMilestone.ID, newMilestone.ID)

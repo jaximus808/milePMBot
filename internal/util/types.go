@@ -134,6 +134,8 @@ type Task struct {
 	ID          int        `json:"id"`
 	MilestoneID *int       `json:"milestone_id"`
 	TaskName    *string    `json:"task_name"`
+	TaskRef     *string    `json:"task_ref"`
+	ProjectID   *int       `json:"project_id"`
 }
 
 type TaskInsert struct {
@@ -146,6 +148,8 @@ type TaskInsert struct {
 	ID          *int       `json:"id,omitempty"`
 	MilestoneID *int       `json:"milestone_id,omitempty"`
 	TaskName    *string    `json:"task_name,omitempty"`
+	TaskRef     *string    `json:"task_ref,omitempty"`
+	ProjectID   *int       `json:"project_id"`
 }
 
 type TaskUpdate = TaskInsert
