@@ -137,7 +137,7 @@ type Task struct {
 	MilestoneID      *int       `json:"milestone_id"`
 	TaskName         *string    `json:"task_name"`
 	TaskRef          *string    `json:"task_ref"`
-	ProjectID        *int       `json:"project_id"`
+	ProjectID        *int       `json:"project_id,omitempty"`
 	StoryPoints      *int       `json:"story_points"`
 	RecentProgressId *int       `json:"recent_progress"`
 	FinishedDate     *time.Time `json:"finished_date,omitempty"`
@@ -154,7 +154,7 @@ type TaskInsert struct {
 	MilestoneID      *int       `json:"milestone_id,omitempty"`
 	TaskName         *string    `json:"task_name,omitempty"`
 	TaskRef          *string    `json:"task_ref,omitempty"`
-	ProjectID        *int       `json:"project_id"`
+	ProjectID        *int       `json:"project_id,omitempty"`
 	StoryPoints      *int       `json:"story_points"`
 	RecentProgressId *int       `json:"recent_progress"`
 	FinishedDate     *time.Time `json:"finished_date,omitempty"`

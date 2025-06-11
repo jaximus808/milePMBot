@@ -11,6 +11,7 @@ import (
 )
 
 func AssignTask(msgInstance *discordgo.MessageCreate, args []string) *util.HandleReport {
+
 	if len(args) != 3 {
 		return util.CreateHandleReport(false, "Expecting 3 args [@assign] [task_ref] [due_date or story points]")
 	}
@@ -24,19 +25,18 @@ func AssignTask(msgInstance *discordgo.MessageCreate, args []string) *util.Handl
 	if currentProject == nil {
 		return util.CreateHandleReport(false, "failed to get active project")
 	}
-
 	re := regexp.MustCompile(`<@!?(\d+)>`)
-	foundMatches := re.FindAllString(args[0], 1)
-
-	if foundMatches == nil || len(foundMatches) != 0 {
-		return util.CreateHandleReport(false, "Expecting 3 args [@assign] [task_ref] [due_date or story points]")
+	match := re.FindStringSubmatch(args[0])
+	if len(match) != 2 {
+		return util.CreateHandleReport(false, "You need to be @ a user!")
 	}
-
-	assignedUserId := foundMatches[0]
+	assignedUserId := match[1]
 
 	taskRef := args[1]
 
 	dueDate, dateError := time.Parse("01/02/2006", args[2])
+
+	var moreDetails string
 
 	// now do assignments
 
@@ -53,6 +53,7 @@ func AssignTask(msgInstance *discordgo.MessageCreate, args []string) *util.Handl
 		if assignedError != nil || assignedTask == nil {
 			return util.CreateHandleReport(false, "Invalid task_ref, are you sure this exists for the current milestone?")
 		}
+		moreDetails = fmt.Sprintf("Story Points: %d", storyPoint)
 
 	} else {
 		assignedTask, assignedError := util.DBAssignTasksDueDate(currentProject.ID, taskRef, msgInstance.Author.ID, assignedUserId, &dueDate)
@@ -60,8 +61,14 @@ func AssignTask(msgInstance *discordgo.MessageCreate, args []string) *util.Handl
 		if assignedError != nil || assignedTask == nil {
 			return util.CreateHandleReport(false, "Invalid task_ref, are you sure this exists for the current milestone?")
 		}
+		moreDetails = fmt.Sprintf("Due Date: %s", dueDate)
 	}
 
-	return util.CreateHandleReport(true, fmt.Sprintf("Assigned task_ref %s to user: <@%s> successfully", taskRef, assignedUserId))
+	return util.CreateHandleReportAndOutput(
+		true,
+		fmt.Sprintf("Task %s assigned successfully", taskRef),
+		fmt.Sprintf("**Assigned** task_ref **%s** \n**To user:** <@%s>\n%s", taskRef, assignedUserId, moreDetails),
+		*currentProject.OutputChannel,
+	)
 
 }

@@ -10,8 +10,8 @@ import (
 
 func CompleteTask(msgInstance *discordgo.MessageCreate, args []string) *util.HandleReport {
 
-	if len(args) < 2 {
-		return util.CreateHandleReport(false, "expected [task_ref] [user]")
+	if len(args) != 1 {
+		return util.CreateHandleReport(false, "expected [task_ref]")
 	}
 	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
 
@@ -33,8 +33,7 @@ func CompleteTask(msgInstance *discordgo.MessageCreate, args []string) *util.Han
 	}
 
 	// now check if this task is even assigned to the user
-
-	if currentTask.AssignedID != &msgInstance.Author.ID {
+	if *currentTask.AssignedID != msgInstance.Author.ID {
 		return util.CreateHandleReport(false, "This task isn't assigned to you")
 	}
 

@@ -49,7 +49,7 @@ func MainHandler(sess *discordgo.Session, msg *discordgo.MessageCreate) {
 		sess.ChannelMessageSend(msg.ChannelID, handleReport.GetInfo())
 
 		if handleReport.NeedsOutput() {
-			sess.ChannelMessageSend(handleReport.GetOutputId(), handleReport.GetOutputMsg())
+			sess.ChannelMessageSend(handleReport.GetOutputId(), ">>> "+handleReport.GetOutputMsg())
 		}
 	}
 }
