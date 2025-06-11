@@ -8,4 +8,5 @@ import (
 
 var commandMap = map[string](func(msgInstance *discordgo.MessageCreate, args []string) *util.HandleReport){
 	"create": milestones.CreateMilestone,
+	"move":   milestones.MoveMilestone,
 }

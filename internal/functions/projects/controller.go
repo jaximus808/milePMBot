@@ -7,5 +7,5 @@ import (
 )
 
 var commandMap = map[string](func(msgInstance *discordgo.MessageCreate, args []string) *util.HandleReport){
-	"create": projects.CreateProject,
+	"start": projects.CreateProject,
 }
