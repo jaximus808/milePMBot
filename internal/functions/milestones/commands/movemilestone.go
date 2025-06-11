@@ -50,7 +50,7 @@ func MoveMilestone(msgInstance *discordgo.MessageCreate, args []string) *util.Ha
 	}
 
 	newProject, newProjectError := util.DBUpdateCurrentMilestone(currentMilestone.ID, newMilestone.ID)
-	if errorNewMilestone != nil {
+	if newProjectError != nil {
 		return util.CreateHandleReport(false, newProjectError.Error())
 	}
 	if newProject == nil {
