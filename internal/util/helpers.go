@@ -20,9 +20,12 @@ func ptrBool(b bool) *bool       { return &b }
 func ptrInt(i int) *int          { return &i }
 
 type HandleReport struct {
-	success   bool
-	timestamp time.Time
-	info      string
+	success    bool
+	timestamp  time.Time
+	info       string
+	outputNeed bool
+	outmsg     string
+	outputId   string
 }
 
 func (HR *HandleReport) GetInfo() string {
@@ -35,11 +38,33 @@ func (HR *HandleReport) GetTime() time.Time {
 	return HR.timestamp
 }
 
+func (HR *HandleReport) NeedsOutput() bool {
+	return HR.outputNeed
+}
+func (HR *HandleReport) GetOutputMsg() string {
+	return HR.outmsg
+}
+func (HR *HandleReport) GetOutputId() string {
+	return HR.outputId
+}
 func CreateHandleReport(success bool, info string) *HandleReport {
 	return &HandleReport{
-		success:   success,
-		timestamp: time.Now(),
-		info:      info,
+		success:    success,
+		timestamp:  time.Now(),
+		info:       info,
+		outputNeed: false,
+		outmsg:     "",
+		outputId:   "",
+	}
+}
+func CreateHandleReportAndOutput(success bool, info string, outMsg string, outputId string) *HandleReport {
+	return &HandleReport{
+		success:    success,
+		timestamp:  time.Now(),
+		info:       info,
+		outputNeed: true,
+		outmsg:     outMsg,
+		outputId:   outputId,
 	}
 }
 
@@ -54,14 +79,14 @@ func SetUpProjectInfo(msgInstance *discordgo.MessageCreate) (*Project, *HandleRe
 		return nil, CreateHandleReport(false, "channel failed!")
 	}
 
-	if channel.Type != discordgo.ChannelTypeGuildCategory {
+	if channel.ParentID == "" {
 		return nil, CreateHandleReport(false, "message must be in a category!")
 	}
 
 	project, insertErr := DBGetProject(channel.GuildID, channel.ParentID)
 
 	if insertErr != nil || project == nil {
-		return nil, CreateHandleReport(false, "failed to make project")
+		return nil, CreateHandleReport(false, "failed to get active project")
 	}
 	return project, nil
 }
@@ -110,13 +135,14 @@ func DBGetActiveProject(guildId string, pchannelId string) (*ActiveProject, erro
 Projects Methods
 */
 
-func DBCreateProject(guildId string, pchannelId string, outoutChannelId string) (*Project, error) {
+func DBCreateProject(guildId string, pchannelId string, outoutChannelId string, desc string) (*Project, error) {
 	var selectedProject Project
 	insertedProject := ProjectInsert{
-		GuildID:       ptrString(guildId),
-		PChannelID:    ptrString(pchannelId),
+		GuildID:       &guildId,
+		PChannelID:    &pchannelId,
 		SprintMsg:     ptrString("Sprint Message: "),
-		OutputChannel: ptrString(outoutChannelId),
+		OutputChannel: &outoutChannelId,
+		Desc:          &desc,
 	}
 	res, _, err := supabaseutil.Client.From("Projects").Insert(insertedProject, false, "", "representation", "").Single().Execute()
 	if err != nil {
@@ -128,6 +154,24 @@ func DBCreateProject(guildId string, pchannelId string, outoutChannelId string) 
 		log.Printf("Error unmarshaling response: %v", err)
 		return nil, err
 	}
+	return &selectedProject, nil
+}
+
+func DBGetProjectId(projectId int) (*Project, error) {
+	var selectedProject Project
+
+	//gets the active project
+	projectRes, _, err := supabaseutil.Client.From("Projects").Select("*", "", false).Eq("id", strconv.Itoa(projectId)).Single().Execute()
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(projectRes, &selectedProject)
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+
 	return &selectedProject, nil
 }
 
@@ -143,12 +187,11 @@ func DBGetProject(guildId string, pchannelId string) (*Project, error) {
 	}
 	err = json.Unmarshal(activeRes, &activeProject)
 	if err != nil {
-		log.Printf("Error unmarshaling response: %v", err)
+		log.Printf("Active Error unmarshaling response: %v", err)
 		return nil, err
 	}
-
 	//gets the active project
-	projectRes, _, err := supabaseutil.Client.From("Projects").Select("*", "", false).Eq("id", strconv.Itoa(activeProject.ID)).Execute()
+	projectRes, _, err := supabaseutil.Client.From("Projects").Select("*", "", false).Eq("id", strconv.Itoa(*activeProject.ProjectID)).Single().Execute()
 	if err != nil {
 		log.Printf("Error unmarshaling response: %v", err)
 		return nil, err
@@ -160,7 +203,6 @@ func DBGetProject(guildId string, pchannelId string) (*Project, error) {
 	}
 
 	return &selectedProject, nil
-
 }
 
 func DBUpdateCurrentMilestone(projectId int, milestoneId int) (*Project, error) {
@@ -168,14 +210,14 @@ func DBUpdateCurrentMilestone(projectId int, milestoneId int) (*Project, error) 
 	insertedProject := ProjectInsert{
 		CurrentMID: &milestoneId,
 	}
-	res, _, err := supabaseutil.Client.From("Projects").Update(insertedProject, "*", "").Single().Execute()
+	res, _, err := supabaseutil.Client.From("Projects").Update(insertedProject, "representation", "").Eq("id", strconv.Itoa(projectId)).Single().Execute()
 	if err != nil {
-		log.Printf("Error unmarshaling response: %v", err)
+		log.Printf("BROOO Error unmarshaling response: %v", err)
 		return nil, err
 	}
 	err = json.Unmarshal(res, &updatedProject)
 	if err != nil {
-		log.Printf("Error unmarshaling response: %v", err)
+		log.Printf(" WTFFF Error unmarshaling response: %v", err)
 		return nil, err
 	}
 	return &updatedProject, nil
@@ -255,6 +297,12 @@ func DBGetPrevMilestone(projectId int, curMilstone *Milestone) (*Milestone, erro
 	return &prevMilestone, nil
 }
 
+func DBMilestoneExistDate(projectId int, deadline *time.Time) bool {
+	_, _, err := supabaseutil.Client.From("Milestones").Select("Id", "", false).Eq("project_id", strconv.Itoa(projectId)).Eq("due_date", deadline.Format(time.RFC3339)).Single().Execute()
+
+	return err != nil
+}
+
 /*
 *
 
@@ -323,4 +371,121 @@ func DBCreateTasks(projectId int, task_name string, desc string, milestone_id in
 	}
 
 	return &newTask, nil
+}
+func DBGetTask(projectId int, taskRef string) (*Task, error) {
+	var selectedTask Task
+	res, _, err := supabaseutil.Client.From("Tasks").Select("*", "", false).Eq("project_id", strconv.Itoa(projectId)).Eq("task_ref", taskRef).Single().Execute()
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &selectedTask)
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+
+	return &selectedTask, nil
+}
+func DBAssignTasksDueDate(projectId int, taskRef string, assignerId string, assignedId string, dueDate *time.Time) (*Task, error) {
+	var newTask Task
+	updatedTask := TaskUpdate{
+		AssignedID: &assignedId,
+		DueDate:    dueDate,
+		AssignerID: &assignedId,
+	}
+
+	res, _, err := supabaseutil.Client.From("Tasks").Update(updatedTask, "representation", "").Eq("project_id", strconv.Itoa(projectId)).Eq("task_ref", taskRef).Single().Execute()
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &newTask)
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	return &newTask, nil
+}
+
+func DBAssignTasksStoryPoints(projectId int, taskRef string, assignerId string, assignedId string, storyPoint int) (*Task, error) {
+	var newTask Task
+	updatedTask := TaskUpdate{
+		AssignedID:  &assignedId,
+		StoryPoints: &storyPoint,
+		AssignerID:  &assignerId,
+	}
+
+	res, _, err := supabaseutil.Client.From("Tasks").Update(updatedTask, "representation", "").Eq("project_id", strconv.Itoa(projectId)).Eq("task_ref", taskRef).Eq("done", "false").Single().Execute()
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &newTask)
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	return &newTask, nil
+}
+func DBUpdateTaskRecentProgress(taskId int, progressId int) (*Task, error) {
+	var newTask Task
+	updatedTask := TaskUpdate{
+		RecentProgressId: &progressId,
+	}
+
+	res, _, err := supabaseutil.Client.From("Tasks").Update(updatedTask, "representation", "").Eq("id", strconv.Itoa(taskId)).Single().Execute()
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &newTask)
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	return &newTask, nil
+}
+
+func DBTaskMarkComplete(projectId int, taskRef string, finishedDate *time.Time) (*Task, error) {
+	var newTask Task
+	updatedTask := TaskUpdate{
+		Done:         ptrBool(true),
+		FinishedDate: finishedDate,
+	}
+
+	res, _, err := supabaseutil.Client.From("Tasks").Update(updatedTask, "representation", "").Eq("project_id", strconv.Itoa(projectId)).Eq("task_ref", taskRef).Single().Execute()
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &newTask)
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	return &newTask, nil
+}
+
+//Progress commands
+
+func DBCreateProgress(task_id int, desc string, completed bool) (*Progress, error) {
+	var newProgress Progress
+	insertedProgress := ProgressInsert{
+		TaskID:    &task_id,
+		Desc:      &desc,
+		Completed: &completed,
+	}
+	res, _, err := supabaseutil.Client.From("Progress").Insert(insertedProgress, false, "", "representation", "").Single().Execute()
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &newProgress)
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+
+	return &newProgress, nil
 }

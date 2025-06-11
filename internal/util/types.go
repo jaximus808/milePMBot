@@ -58,6 +58,7 @@ type Progress struct {
 	Desc      *string   `json:"desc"`
 	ID        int       `json:"id"`
 	TaskID    *int      `json:"task_id"`
+	Completed *bool     `json:"completed,omitempty"`
 }
 
 type ProgressInsert struct {
@@ -65,6 +66,7 @@ type ProgressInsert struct {
 	Desc      *string    `json:"desc,omitempty"`
 	ID        *int       `json:"id,omitempty"`
 	TaskID    *int       `json:"task_id,omitempty"`
+	Completed *bool      `json:"completed,omitempty"`
 }
 
 type ProgressUpdate = ProgressInsert
@@ -125,31 +127,37 @@ type RoleUpdate = RoleInsert
 
 // Tasks
 type Task struct {
-	AssignedID  *string    `json:"assigned_id"`
-	AssignerID  *string    `json:"assigner_id"`
-	CreatedAt   time.Time  `json:"created_at"`
-	Desc        *string    `json:"desc"`
-	Done        *bool      `json:"done"`
-	DueDate     *time.Time `json:"due_date"`
-	ID          int        `json:"id"`
-	MilestoneID *int       `json:"milestone_id"`
-	TaskName    *string    `json:"task_name"`
-	TaskRef     *string    `json:"task_ref"`
-	ProjectID   *int       `json:"project_id"`
+	AssignedID       *string    `json:"assigned_id"`
+	AssignerID       *string    `json:"assigner_id"`
+	CreatedAt        time.Time  `json:"created_at"`
+	Desc             *string    `json:"desc"`
+	Done             *bool      `json:"done"`
+	DueDate          *time.Time `json:"due_date"`
+	ID               int        `json:"id"`
+	MilestoneID      *int       `json:"milestone_id"`
+	TaskName         *string    `json:"task_name"`
+	TaskRef          *string    `json:"task_ref"`
+	ProjectID        *int       `json:"project_id"`
+	StoryPoints      *int       `json:"story_points"`
+	RecentProgressId *int       `json:"recent_progress"`
+	FinishedDate     *time.Time `json:"finished_date,omitempty"`
 }
 
 type TaskInsert struct {
-	AssignedID  *string    `json:"assigned_id,omitempty"`
-	AssignerID  *string    `json:"assigner_id,omitempty"`
-	CreatedAt   *time.Time `json:"created_at,omitempty"`
-	Desc        *string    `json:"desc,omitempty"`
-	Done        *bool      `json:"done,omitempty"`
-	DueDate     *time.Time `json:"due_date,omitempty"`
-	ID          *int       `json:"id,omitempty"`
-	MilestoneID *int       `json:"milestone_id,omitempty"`
-	TaskName    *string    `json:"task_name,omitempty"`
-	TaskRef     *string    `json:"task_ref,omitempty"`
-	ProjectID   *int       `json:"project_id"`
+	AssignedID       *string    `json:"assigned_id,omitempty"`
+	AssignerID       *string    `json:"assigner_id,omitempty"`
+	CreatedAt        *time.Time `json:"created_at,omitempty"`
+	Desc             *string    `json:"desc,omitempty"`
+	Done             *bool      `json:"done,omitempty"`
+	DueDate          *time.Time `json:"due_date,omitempty"`
+	ID               *int       `json:"id,omitempty"`
+	MilestoneID      *int       `json:"milestone_id,omitempty"`
+	TaskName         *string    `json:"task_name,omitempty"`
+	TaskRef          *string    `json:"task_ref,omitempty"`
+	ProjectID        *int       `json:"project_id"`
+	StoryPoints      *int       `json:"story_points"`
+	RecentProgressId *int       `json:"recent_progress"`
+	FinishedDate     *time.Time `json:"finished_date,omitempty"`
 }
 
 type TaskUpdate = TaskInsert

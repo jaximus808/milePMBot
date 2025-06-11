@@ -32,6 +32,12 @@ func CreateMilestone(msgInstance *discordgo.MessageCreate, args []string) *util.
 		return util.CreateHandleReport(false, "incorrect date format, expect MM/DD/YYYY")
 	}
 
+	milestoneExist := util.DBMilestoneExistDate(currentProject.ID, &msDate)
+
+	if milestoneExist {
+		return util.CreateHandleReport(false, "two milestones can't have the same date!!!")
+	}
+
 	// now add milestones
 
 	milestone, msError := util.DBCreateMilestone(currentProject.ID, msName, &msDate, msDesc)

@@ -34,7 +34,7 @@ func MainHandler(sess *discordgo.Session, msg *discordgo.MessageCreate) {
 			commandFunction, exists = projects.CommandMap[subCommand]
 		case "milestone":
 			commandFunction, exists = milestones.CommandMap[subCommand]
-		case "tasks":
+		case "task":
 			commandFunction, exists = tasks.CommandMap[subCommand]
 		default:
 			sess.ChannelMessageSend(msg.ChannelID, "Didn't recongize your command: "+args[0])
@@ -47,10 +47,9 @@ func MainHandler(sess *discordgo.Session, msg *discordgo.MessageCreate) {
 		}
 		handleReport := commandFunction(msg, args[2:])
 		sess.ChannelMessageSend(msg.ChannelID, handleReport.GetInfo())
-		// if true { // Replace with the report.success check
-		// 	s.ChannelMessageSend(msg.ChannelID, "Success!") // Replace with report.info
-		// } else {
-		// 	s.ChannelMessageSend(m.ChannelID, "ERROR: Failed!") // Replace with report.info
-		// }
+
+		if handleReport.NeedsOutput() {
+			sess.ChannelMessageSend(handleReport.GetOutputId(), handleReport.GetOutputMsg())
+		}
 	}
 }

@@ -1,4 +1,4 @@
-package commands
+package tasks
 
 import (
 	"fmt"
@@ -37,6 +37,7 @@ func AddTask(msgInstance *discordgo.MessageCreate, args []string) *util.HandleRe
 	// user has permisisons now
 
 	// need to check if the same task ref already exists
+	// need to also check if a milestone on the same date exists
 
 	// Tbh i think it would be worth making a prompt feature, where the
 	// bot can ask which task would u like to assign, and you can reply with the number
@@ -53,5 +54,11 @@ func AddTask(msgInstance *discordgo.MessageCreate, args []string) *util.HandleRe
 		return util.CreateHandleReport(false, "failed to create task, ensure this task has a unique name for the given milestone!")
 	}
 
-	return util.CreateHandleReport(false, fmt.Sprintf("Created task with task_ref: %s ", *newTask.TaskRef))
+	return util.CreateHandleReportAndOutput(
+		true,
+		fmt.Sprintf("Created task with task_ref: %s ",
+			*newTask.TaskRef),
+		fmt.Sprintf("Task **%s** Created\nTask_ref: %s", *newTask.TaskName, *newTask.TaskRef),
+		*currentProject.OutputChannel,
+	)
 }

@@ -303,7 +303,7 @@ Below will list out the usuage for tasks for a given project
 Create a task for the current milestone
 
 ``` 
- !task add [task name] [desc] 
+ !task create [task name] [desc] 
 ``` 
 
 This command will give you a task_ref that has no spaces, where you will use to assign the task later
@@ -319,24 +319,25 @@ A user cannot be given a task with the same name
 Assigning a prev created task 
 
 ```
- !task assign @user [task_ref or task_id] [due_date]
+ !task assign @user [task_ref] [due_date]
 ```
 
-Create a new task and assign: 
+Assign a task: 
 
-If the task_name isn't recongized, it will create that task and expect a description
 
 Date version: 
 
 ``` 
- !task assign @user [task_name] [due date] [desc]
+ !task assign @user [task_ref] [due date] 
 ``` 
 
 Sprint version (the task still has a date under the hood, and is due at the end of said sprint): 
 
 ``` 
- !task assign @user [task name] sprint_[sprint number] [desc]
+ !task assign @user [task_ref] [story points] 
 ``` 
+
+If a user is already assigned the task ref, and you assign a new user, the original user will no longer be assigned to that task
 
 ### Remove Task (Leads and Admins) (WIP)
 
@@ -353,14 +354,9 @@ Update a task's deadline
 date method: 
 
 ``` 
- !task update deadline [new date]
+ !task update deadline [task_ref] [new date]
 ``` 
 
-sprint method:
-
-``` 
- !task update deadline sprint_[sprint number]
-``` 
 
 ### Mark as Complete (complex perms) (WIP)
 
@@ -399,14 +395,14 @@ Get @user's tasks do
 Update the current progress of a task
 
 ``` 
- !task update progress [desc]
+ !task progress [task_ref] [desc]
 ``` 
 
-The bot will then prompt you to define which task to update given a number, to give its number use
+<!-- The bot will then prompt you to define which task to update given a number, to give its number use
 
 ``` 
  !select [number]
-``` 
+```  -->
 
 If you wish to avoid this step and just use the tasks id, do 
 
@@ -419,14 +415,14 @@ If you wish to avoid this step and just use the tasks id, do
 Update the current progress of a task
 
 ``` 
- !task done [desc]
+ !task done [task_ref] [desc]
 ``` 
 
 The bot will then prompt you to define which task to update given a number, to give its number use
-
+<!-- 
 ``` 
  !select [number]
-``` 
+```  -->
 
 If you wish to avoid this step and just use the tasks id, do 
 

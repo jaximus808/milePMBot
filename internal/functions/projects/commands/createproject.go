@@ -1,6 +1,7 @@
 package projects
 
 import (
+	"log"
 	"strings"
 	"time"
 
@@ -39,12 +40,15 @@ func CreateProject(msgInstance *discordgo.MessageCreate, args []string) *util.Ha
 
 	// first check if an active project exists
 
+	log.Printf("good?")
 	_, checkActiveProject := util.DBGetActiveProject(channel.GuildID, channel.ParentID)
 
 	if checkActiveProject == nil {
 		return util.CreateHandleReport(false, "There already is an active project for this category!")
 	}
-	project, insertErr := util.DBCreateProject(channel.GuildID, channel.ParentID, msgInstance.ChannelID)
+
+	log.Printf("maowgood?")
+	project, insertErr := util.DBCreateProject(channel.GuildID, channel.ParentID, msgInstance.ChannelID, "new project!")
 
 	if insertErr != nil || project == nil {
 		return util.CreateHandleReport(false, "failed to make project")
@@ -69,5 +73,10 @@ func CreateProject(msgInstance *discordgo.MessageCreate, args []string) *util.Ha
 	if activeProjctError != nil || activeProject == nil {
 		return util.CreateHandleReport(false, "failed to create an active project :(")
 	}
+	updatedProject, updateProjectError := util.DBUpdateCurrentMilestone(project.ID, milestone.ID)
+	if updateProjectError != nil || updatedProject == nil {
+		return util.CreateHandleReport(false, "failed to create an update milestone  :(")
+	}
+
 	return util.CreateHandleReport(true, "Successfully added project!")
 }
