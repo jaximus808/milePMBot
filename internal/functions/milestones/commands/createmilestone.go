@@ -2,18 +2,13 @@ package milestones
 
 import (
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func CreateMilestone(msgInstance *discordgo.MessageCreate, args []string) *util.HandleReport {
-
-	if len(args) < 3 {
-		return util.CreateHandleReport(false, "expected 3 args [ms_name] [date] [desc]")
-	}
+func CreateMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
 
 	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
 
@@ -25,9 +20,9 @@ func CreateMilestone(msgInstance *discordgo.MessageCreate, args []string) *util.
 		return util.CreateHandleReport(false, "failed to get active project")
 	}
 
-	msName := args[0]
-	msDate, dateError := time.Parse("01/02/2006", args[1])
-	msDesc := strings.Join(args[2:], " ")
+	msName := util.GetOptionValue(args.Options, "msname")
+	msDate, dateError := time.Parse("01/02/2006", util.GetOptionValue(args.Options, "msdate"))
+	msDesc := util.GetOptionValue(args.Options, "desc")
 	if dateError != nil {
 		return util.CreateHandleReport(false, "incorrect date format, expect MM/DD/YYYY")
 	}

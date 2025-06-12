@@ -6,7 +6,7 @@ import (
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-var CommandMap = map[string](func(msgInstance *discordgo.MessageCreate, args []string) *util.HandleReport){
+var CommandMap = map[string](func(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport){
 	"create": milestones.CreateMilestone,
 	"move":   milestones.MoveMilestone,
 }

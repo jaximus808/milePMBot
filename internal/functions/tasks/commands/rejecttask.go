@@ -2,17 +2,12 @@ package tasks
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func RejectTask(msgInstance *discordgo.MessageCreate, args []string) *util.HandleReport {
-
-	if len(args) < 2 {
-		return util.CreateHandleReport(false, "Expected [task_ref]")
-	}
+func RejectTask(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
 
 	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
 	if errorHandle != nil {
@@ -23,8 +18,8 @@ func RejectTask(msgInstance *discordgo.MessageCreate, args []string) *util.Handl
 		return util.CreateHandleReport(false, "failed to get active project")
 	}
 
-	taskRef := args[0]
-	desc := strings.Join(args[1:], " ")
+	taskRef := util.GetOptionValue(args.Options, "taskref")
+	desc := util.GetOptionValue(args.Options, "desc")
 
 	//pretty much gonna make a new progress
 

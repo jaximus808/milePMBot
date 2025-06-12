@@ -57,6 +57,16 @@ func CreateHandleReport(success bool, info string) *HandleReport {
 		outputId:   "",
 	}
 }
+
+func GetOptionValue(options []*discordgo.ApplicationCommandInteractionDataOption, name string) string {
+	for _, opt := range options {
+		if opt.Name == name {
+			return opt.StringValue()
+		}
+	}
+	return ""
+}
+
 func CreateHandleReportAndOutput(success bool, info string, outMsg string, outputId string) *HandleReport {
 	return &HandleReport{
 		success:    success,
@@ -68,7 +78,7 @@ func CreateHandleReportAndOutput(success bool, info string, outMsg string, outpu
 	}
 }
 
-func SetUpProjectInfo(msgInstance *discordgo.MessageCreate) (*Project, *HandleReport) {
+func SetUpProjectInfo(msgInstance *discordgo.InteractionCreate) (*Project, *HandleReport) {
 	if msgInstance.GuildID == "" {
 		return nil, CreateHandleReport(false, "Not in a discord server")
 	}
@@ -267,7 +277,7 @@ func DBGetNextMilestone(projectId int, curMilstone *Milestone) (*Milestone, erro
 
 	orderOptions.Ascending = true
 
-	res, _, err := supabaseutil.Client.From("Milestones").Select("*", "", false).Eq("project_id", strconv.Itoa(projectId)).Gt("due_date", curMilstone.CreatedAt.Format(time.RFC3339)).Order("due_date", orderOptions).Limit(1, "").Single().Execute()
+	res, _, err := supabaseutil.Client.From("Milestones").Select("*", "", false).Eq("project_id", strconv.Itoa(projectId)).Gt("due_date", curMilstone.DueDate.Format(time.RFC3339)).Order("due_date", orderOptions).Limit(1, "").Single().Execute()
 
 	if err != nil {
 		log.Printf("Error unmarshaling response: %v", err)
@@ -282,21 +292,23 @@ func DBGetNextMilestone(projectId int, curMilstone *Milestone) (*Milestone, erro
 }
 
 func DBGetPrevMilestone(projectId int, curMilstone *Milestone) (*Milestone, error) {
-	var prevMilestone Milestone
+	var nextMilestone Milestone
 	orderOptions := &postgrest.DefaultOrderOpts
 
 	orderOptions.Ascending = false
 
-	res, _, err := supabaseutil.Client.From("Milestones").Select("*", "", false).Eq("project_id", strconv.Itoa(projectId)).Lt("due_date", strconv.Itoa(int(curMilstone.DueDate.Unix()))).Order("due_date", orderOptions).Limit(1, "Milestones").Single().Execute()
+	res, _, err := supabaseutil.Client.From("Milestones").Select("*", "", false).Eq("project_id", strconv.Itoa(projectId)).Lt("due_date", curMilstone.DueDate.Format(time.RFC3339)).Order("due_date", orderOptions).Limit(1, "").Single().Execute()
 
 	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
 		return nil, err
 	}
-	err = json.Unmarshal(res, &prevMilestone)
+	err = json.Unmarshal(res, &nextMilestone)
 	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
 		return nil, err
 	}
-	return &prevMilestone, nil
+	return &nextMilestone, nil
 }
 
 func DBMilestoneExistDate(projectId int, deadline *time.Time) bool {

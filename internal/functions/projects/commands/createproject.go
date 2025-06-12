@@ -2,7 +2,6 @@ package projects
 
 import (
 	"log"
-	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -10,7 +9,7 @@ import (
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func CreateProject(msgInstance *discordgo.MessageCreate, args []string) *util.HandleReport {
+func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
 
 	// TODO: MUST ADD A CHECK THAT THERE IS NO ALREADY ACTIVE PROJECT
 
@@ -18,9 +17,6 @@ func CreateProject(msgInstance *discordgo.MessageCreate, args []string) *util.Ha
 		return util.CreateHandleReport(false, "Not in a discord server")
 	}
 
-	if len(args) < 3 {
-		return util.CreateHandleReport(false, "could not parse instructoons")
-	}
 	channel, err := discord.DiscordSession.Channel(msgInstance.ChannelID)
 
 	if err != nil {
@@ -31,16 +27,15 @@ func CreateProject(msgInstance *discordgo.MessageCreate, args []string) *util.Ha
 		return util.CreateHandleReport(false, "message must be in a category!")
 	}
 
-	msName := args[0]
-	msDate, dateError := time.Parse("01/02/2006", args[1])
-	msDesc := strings.Join(args[2:], " ")
+	msName := util.GetOptionValue(args.Options, "msname")
+	msDate, dateError := time.Parse("01/02/2006", util.GetOptionValue(args.Options, "msdate"))
+	msDesc := util.GetOptionValue(args.Options, "desc")
 	if dateError != nil {
 		return util.CreateHandleReport(false, "incorrect date format, expect MM/DD/YYYY: "+dateError.Error())
 	}
 
 	// first check if an active project exists
 
-	log.Printf("good?")
 	_, checkActiveProject := util.DBGetActiveProject(channel.GuildID, channel.ParentID)
 
 	if checkActiveProject == nil {
@@ -61,7 +56,7 @@ func CreateProject(msgInstance *discordgo.MessageCreate, args []string) *util.Ha
 		return util.CreateHandleReport(false, "failed to make milestone tied to project")
 	}
 
-	userRole, roleError := util.DBCreateRole(project.ID, msgInstance.Author.ID, int(util.LeadRole))
+	userRole, roleError := util.DBCreateRole(project.ID, msgInstance.Member.User.ID, int(util.LeadRole))
 	if roleError != nil || userRole == nil {
 		return util.CreateHandleReport(false, "failed to make user role tied to project")
 	}

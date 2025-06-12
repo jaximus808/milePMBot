@@ -2,17 +2,13 @@ package tasks
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func CompleteTask(msgInstance *discordgo.MessageCreate, args []string) *util.HandleReport {
+func CompleteTask(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
 
-	if len(args) < 2 {
-		return util.CreateHandleReport(false, "expected [task_ref] [desc]")
-	}
 	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
 
 	if errorHandle != nil {
@@ -23,8 +19,8 @@ func CompleteTask(msgInstance *discordgo.MessageCreate, args []string) *util.Han
 		return util.CreateHandleReport(false, "no project exists here :(")
 	}
 
-	taskRef := args[0]
-	desc := strings.Join(args[1:], " ")
+	taskRef := util.GetOptionValue(args.Options, "taskref")
+	desc := util.GetOptionValue(args.Options, "desc")
 
 	currentTask, errorCurrentTask := util.DBGetTask(currentProject.ID, taskRef)
 
@@ -33,7 +29,7 @@ func CompleteTask(msgInstance *discordgo.MessageCreate, args []string) *util.Han
 	}
 
 	// now check if this task is even assigned to the user
-	if *currentTask.AssignedID != msgInstance.Author.ID {
+	if *currentTask.AssignedID != msgInstance.Member.User.ID {
 		return util.CreateHandleReport(false, "This task isn't assigned to you")
 	}
 

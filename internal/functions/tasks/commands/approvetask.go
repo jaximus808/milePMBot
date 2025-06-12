@@ -8,11 +8,9 @@ import (
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func ApproveTask(msgInstance *discordgo.MessageCreate, args []string) *util.HandleReport {
+func ApproveTask(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
 
-	if len(args) != 1 {
-		return util.CreateHandleReport(false, "Expected [task_ref]")
-	}
+	taskRef := util.GetOptionValue(args.Options, "taskref")
 
 	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
 	if errorHandle != nil {
@@ -23,7 +21,6 @@ func ApproveTask(msgInstance *discordgo.MessageCreate, args []string) *util.Hand
 		return util.CreateHandleReport(false, "failed to get active project")
 	}
 
-	taskRef := args[0]
 	currentTime := time.Now()
 
 	updatedTask, errorUpdatedTask := util.DBTaskMarkComplete(currentProject.ID, taskRef, &currentTime)

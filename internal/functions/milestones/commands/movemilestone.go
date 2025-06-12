@@ -1,15 +1,13 @@
 package milestones
 
 import (
+	"fmt"
+
 	"github.com/bwmarrin/discordgo"
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func MoveMilestone(msgInstance *discordgo.MessageCreate, args []string) *util.HandleReport {
-
-	if len(args) != 1 {
-		return util.CreateHandleReport(false, "expected [next/prev]")
-	}
+func MoveMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
 
 	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
 
@@ -29,28 +27,39 @@ func MoveMilestone(msgInstance *discordgo.MessageCreate, args []string) *util.Ha
 	if currentMilestone == nil {
 		return util.CreateHandleReport(false, "failed to get active milestone")
 	}
-	direction := args[0]
+	direction := util.GetOptionValue(args.Options, "direction")
 
 	var newMilestone *util.Milestone
 	var errorNewMilestone error
 
+	var displayDirection string
+
 	if direction == "next" {
 		//need to insert current project
 		newMilestone, errorNewMilestone = util.DBGetNextMilestone(currentProject.ID, currentMilestone)
+		displayDirection = "forward"
 	} else if direction == "prev" {
-		newMilestone, errorNewMilestone = util.DBGetPrevMilestone(currentMilestone.ID, currentMilestone)
+		newMilestone, errorNewMilestone = util.DBGetPrevMilestone(currentProject.ID, currentMilestone)
+		displayDirection = "back"
 	}
 
 	if errorNewMilestone != nil || newMilestone == nil {
 		return util.CreateHandleReport(false, "Could not get "+direction+" milestone")
 	}
 
-	newProject, newProjectError := util.DBUpdateCurrentMilestone(currentMilestone.ID, newMilestone.ID)
+	newProject, newProjectError := util.DBUpdateCurrentMilestone(currentProject.ID, newMilestone.ID)
 	if newProjectError != nil {
-		return util.CreateHandleReport(false, newProjectError.Error())
+		return util.CreateHandleReport(false, "Could not update the project to its new milestone")
 	}
+
 	if newProject == nil {
 		return util.CreateHandleReport(false, "failed to update new milestone")
 	}
-	return util.CreateHandleReport(true, "successfully changed to milestone: "+(*newMilestone.DisplayName))
+	// will need to print tasks after
+	return util.CreateHandleReportAndOutput(
+		true,
+		"successfully changed to milestone: "+(*newMilestone.DisplayName),
+		fmt.Sprintf("**Milestone Update!** \nThe project's current milestone has now moved %s to %s", displayDirection, (*newMilestone.DisplayName)),
+		*currentProject.OutputChannel,
+	)
 }

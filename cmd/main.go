@@ -29,6 +29,7 @@ func main() {
 	if discErr != nil {
 		fmt.Print(discErr.Error())
 	}
+
 	discord.DiscordSession.AddHandler(functions.MainHandler)
 
 	openErr := discord.DiscordSession.Open()
@@ -37,6 +38,8 @@ func main() {
 	}
 	defer discord.DiscordSession.Close()
 
+	functions.ClearCommands(discord.DiscordSession, "738509536520044575")
+	functions.RegisterCommands(discord.DiscordSession, "738509536520044575")
 	log.Println("Bot Online")
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)

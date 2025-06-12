@@ -2,18 +2,12 @@ package tasks
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func AddTask(msgInstance *discordgo.MessageCreate, args []string) *util.HandleReport {
-
-	if len(args) < 2 {
-
-		return util.CreateHandleReport(false, "expected [task_name no spaces] [desc]")
-	}
+func AddTask(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
 
 	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
 	if errorHandle != nil {
@@ -24,7 +18,7 @@ func AddTask(msgInstance *discordgo.MessageCreate, args []string) *util.HandleRe
 		return util.CreateHandleReport(false, "failed to get active project")
 	}
 
-	userRole, errorRole := util.DBGetRole(currentProject.ID, msgInstance.Author.ID)
+	userRole, errorRole := util.DBGetRole(currentProject.ID, msgInstance.Member.User.ID)
 
 	if errorRole != nil || userRole == nil {
 		return util.CreateHandleReport(false, "you lack the right perms to do this!")
@@ -45,8 +39,8 @@ func AddTask(msgInstance *discordgo.MessageCreate, args []string) *util.HandleRe
 
 	// ref can be milestone{milestoneId}/task_ref_name
 
-	taskName := args[0]
-	taskDesc := strings.Join(args[1:], " ")
+	taskName := util.GetOptionValue(args.Options, "name")
+	taskDesc := util.GetOptionValue(args.Options, "desc")
 
 	newTask, taskError := util.DBCreateTasks(currentProject.ID, taskName, taskDesc, *currentProject.CurrentMID)
 
