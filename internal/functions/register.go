@@ -13,21 +13,74 @@ func RegisterCommands(s *discordgo.Session, guildId string) {
 			Description: "Manage a project",
 			Options: []*discordgo.ApplicationCommandOption{
 				{
-					Type:         discordgo.ApplicationCommandOptionString,
-					Name:         "op",
-					Description:  "task operation",
-					Required:     true,
-					Autocomplete: true,
-				},
-				{
-					Type:        discordgo.ApplicationCommandOptionString,
-					Name:        "args",
-					Description: "command arguments",
-					Required:    false,
+					Name:        "create",
+					Description: "create a project",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "msname",
+							Description: "the initial milestone's name",
+							Required:    true,
+						},
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "msdate",
+							Description: "due date",
+							Required:    true,
+						}, {
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "desc",
+							Description: "description",
+							Required:    true,
+						},
+					},
 				},
 			},
 		},
 		{
+			Name:        "milestone",
+			Description: "Manage a project's milestones",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:        "create",
+					Description: "create a milestone",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "msname",
+							Description: "the initial milestone's name",
+							Required:    true,
+						},
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "msdate",
+							Description: "due date",
+							Required:    true,
+						}, {
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "desc",
+							Description: "description",
+							Required:    true,
+						},
+					},
+				},
+				{
+					Name:        "move",
+					Description: "move to a milestone",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "direction",
+							Description: "the new tasks's name",
+							Required:    true,
+						},
+					},
+				},
+			},
+		}, {
 			Name:        "task",
 			Description: "Manage a project's task",
 			//make a better name for this shit
@@ -71,6 +124,53 @@ func RegisterCommands(s *discordgo.Session, guildId string) {
 							Type:        discordgo.ApplicationCommandOptionString,
 							Name:        "expectation",
 							Description: "due date or story points",
+							Required:    true,
+						},
+					},
+				}, {
+					Name:        "complete",
+					Description: "compte a task",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "taskref",
+							Description: "the complete taskref",
+							Required:    true,
+						},
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "desc", // i should 100% make this auto complete
+							Description: "progress description",
+							Required:    true,
+						},
+					},
+				}, {
+					Name:        "approve",
+					Description: "approve a task (LEADS+ only)",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "taskref",
+							Description: "the completed taskref",
+							Required:    true,
+						},
+					},
+				}, {
+					Name:        "reject",
+					Description: "approve a task (LEADS+ only)",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "taskref",
+							Description: "the complete taskref",
+							Required:    true,
+						}, {
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "desc",
+							Description: "problems with the work",
 							Required:    true,
 						},
 					},
