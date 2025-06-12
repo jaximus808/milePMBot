@@ -174,6 +174,23 @@ func RegisterCommands(s *discordgo.Session, guildId string) {
 							Required:    true,
 						},
 					},
+				}, {
+					Name:        "progress",
+					Description: "adds progress to a task",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "taskref",
+							Description: "the complete taskref",
+							Required:    true,
+						}, {
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "desc",
+							Description: "problems with the work",
+							Required:    true,
+						},
+					},
 				},
 			},
 		},

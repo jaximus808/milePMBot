@@ -120,7 +120,7 @@ type RoleInsert struct {
 	DiscordID *string    `json:"discord_id,omitempty"`
 	ID        *int       `json:"id,omitempty"`
 	ProjectID *int       `json:"project_id,omitempty"`
-	RoleLevel int        `json:"role_level"`
+	RoleLevel int        `json:"role_level,omitempty"`
 }
 
 type RoleUpdate = RoleInsert
@@ -134,7 +134,7 @@ type Task struct {
 	Done             *bool      `json:"done"`
 	DueDate          *time.Time `json:"due_date"`
 	ID               int        `json:"id"`
-	MilestoneID      *int       `json:"milestone_id"`
+	MilestoneID      *int       `json:"milestone_id,omitempty"`
 	TaskName         *string    `json:"task_name"`
 	TaskRef          *string    `json:"task_ref"`
 	ProjectID        *int       `json:"project_id,omitempty"`

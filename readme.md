@@ -398,17 +398,8 @@ Update the current progress of a task
  !task progress [task_ref] [desc]
 ``` 
 
-<!-- The bot will then prompt you to define which task to update given a number, to give its number use
 
-``` 
- !select [number]
-```  -->
 
-If you wish to avoid this step and just use the tasks id, do 
-
-``` 
- !task update progress [task id] [desc]
-``` 
 
 ### Set to done on Task (Any) (WIP)
 
