@@ -34,8 +34,8 @@ func ApproveTask(msgInstance *discordgo.MessageCreate, args []string) *util.Hand
 
 	return util.CreateHandleReportAndOutput(
 		true,
-		"Yay! Task is now marked as approved",
-		fmt.Sprintf("Task: **%s** Approved!\nRef: %s has been approved and marked completed", *updatedTask.TaskName, *updatedTask.TaskRef),
+		"Yay! Task is now marked as approved :smile:",
+		fmt.Sprintf("Task: %s **Approved**!\nRef: %s has been approved and marked completed", *updatedTask.TaskName, *updatedTask.TaskRef),
 		*currentProject.OutputChannel,
 	)
 }

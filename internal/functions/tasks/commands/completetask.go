@@ -10,8 +10,8 @@ import (
 
 func CompleteTask(msgInstance *discordgo.MessageCreate, args []string) *util.HandleReport {
 
-	if len(args) != 1 {
-		return util.CreateHandleReport(false, "expected [task_ref]")
+	if len(args) < 2 {
+		return util.CreateHandleReport(false, "expected [task_ref] [desc]")
 	}
 	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
 
@@ -52,8 +52,8 @@ func CompleteTask(msgInstance *discordgo.MessageCreate, args []string) *util.Han
 	//should make the option a helper function lol
 	return util.CreateHandleReportAndOutput(
 		true,
-		"Marked as completed and sent to your assigner for review!",
-		fmt.Sprintf("Task **%s** Completed!\nTask Ref: %s\n<@%s> Please review and approve/reject with !task [approve/reject] %s\nDesc: %s", *currentTask.TaskName, *currentTask.TaskRef, *currentTask.AssignerID, *currentTask.TaskRef, *currentTask.Desc),
+		"Marked as completed and sent to your assigner for review! ",
+		fmt.Sprintf("Task **%s** Completed!\nTask Ref: %s\n<@%s> Please review and approve/reject with !task [approve/reject] %s\nDesc: %s", *currentTask.TaskName, *currentTask.TaskRef, *currentTask.AssignerID, *currentTask.TaskRef, desc),
 		*currentProject.OutputChannel,
 	)
 }

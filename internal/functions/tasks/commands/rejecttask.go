@@ -40,8 +40,8 @@ func RejectTask(msgInstance *discordgo.MessageCreate, args []string) *util.Handl
 	}
 	return util.CreateHandleReportAndOutput(
 		true,
-		"Yay! Task is now marked as approved",
-		fmt.Sprintf("Task **%s** Not Approved\nTask Ref: %s\nReason: %s\n<@%s> Please review and remedy these changes", *currentTask.TaskName, *currentTask.TaskRef, desc, *currentTask.AssignedID),
+		"We'll mark this as not approved and notify the assigned person",
+		fmt.Sprintf("Task: %s **Not Approved**\nTask Ref: %s\nReason: %s\n<@%s> Please review and remedy these changes", *currentTask.TaskName, *currentTask.TaskRef, desc, *currentTask.AssignedID),
 		*currentProject.OutputChannel,
 	)
 }

@@ -12,6 +12,8 @@ import (
 
 const CommandPrefix = "!"
 
+// todo: add an auto complete interaction handler
+
 func MainHandler(sess *discordgo.Session, msg *discordgo.MessageCreate) {
 	if msg.Author.ID == sess.State.User.ID {
 		return

@@ -267,13 +267,15 @@ func DBGetNextMilestone(projectId int, curMilstone *Milestone) (*Milestone, erro
 
 	orderOptions.Ascending = true
 
-	res, _, err := supabaseutil.Client.From("Milestones").Select("*", "", false).Eq("project_id", strconv.Itoa(projectId)).Gt("due_date", strconv.Itoa(int(curMilstone.DueDate.Unix()))).Order("due_date", orderOptions).Limit(1, "Milestones").Single().Execute()
+	res, _, err := supabaseutil.Client.From("Milestones").Select("*", "", false).Eq("project_id", strconv.Itoa(projectId)).Gt("due_date", curMilstone.CreatedAt.Format(time.RFC3339)).Order("due_date", orderOptions).Limit(1, "").Single().Execute()
 
 	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
 		return nil, err
 	}
 	err = json.Unmarshal(res, &nextMilestone)
 	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
 		return nil, err
 	}
 	return &nextMilestone, nil
@@ -298,9 +300,9 @@ func DBGetPrevMilestone(projectId int, curMilstone *Milestone) (*Milestone, erro
 }
 
 func DBMilestoneExistDate(projectId int, deadline *time.Time) bool {
-	_, _, err := supabaseutil.Client.From("Milestones").Select("Id", "", false).Eq("project_id", strconv.Itoa(projectId)).Eq("due_date", deadline.Format(time.RFC3339)).Single().Execute()
+	_, _, err := supabaseutil.Client.From("Milestones").Select("id", "", false).Eq("project_id", strconv.Itoa(projectId)).Eq("due_date", deadline.Format(time.RFC3339)).Single().Execute()
 
-	return err != nil
+	return err == nil
 }
 
 /*
