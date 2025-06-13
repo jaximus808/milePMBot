@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/jaximus808/milePMBot/internal/util"
@@ -22,6 +23,8 @@ func CompleteTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appl
 	taskRef := util.GetOptionValue(args.Options, "taskref")
 	desc := util.GetOptionValue(args.Options, "desc")
 
+	log.Printf("got task ref %s", taskRef)
+
 	currentTask, errorCurrentTask := util.DBGetTask(currentProject.ID, taskRef)
 
 	if errorCurrentTask != nil || currentTask == nil {
@@ -39,7 +42,7 @@ func CompleteTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appl
 	if newProgressError != nil || newProgress == nil {
 		return util.CreateHandleReport(false, "Couldn't make a progress report :()")
 	}
-	updatedTask, updatedTaskError := util.DBUpdateTaskRecentProgress(currentTask.ID, newProgress.ID)
+	updatedTask, updatedTaskError := util.DBUpdateTaskRecentProgress(currentTask.ID, true)
 
 	if updatedTaskError != nil || updatedTask == nil {
 		return util.CreateHandleReport(false, "Failed to update task correctly")

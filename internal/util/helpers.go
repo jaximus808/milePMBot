@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -56,6 +58,31 @@ func CreateHandleReport(success bool, info string) *HandleReport {
 		outmsg:     "",
 		outputId:   "",
 	}
+}
+func ValidTaskQuery(s string) bool {
+	const base = "milestone"
+
+	// 1) still typing the word “milestone”?
+	if len(s) < len(base) {
+		return strings.HasPrefix(base, s)
+	}
+	// 2) they've typed all of “milestone” and maybe more
+	if s == base {
+		return true
+	}
+
+	rest := s[len(base):] // what comes after "milestone"
+
+	// 3) digits only → still a valid milestone ID
+	if ok, _ := regexp.MatchString(`^[0-9]+$`, rest); ok {
+		return true
+	}
+	// 4) digits + "/" + anything → now we're querying sub-items under that milestone
+	if ok, _ := regexp.MatchString(`^[0-9]+\/.*`, rest); ok {
+		return true
+	}
+	// otherwise bail out
+	return false
 }
 
 func GetOptionValue(options []*discordgo.ApplicationCommandInteractionDataOption, name string) string {
@@ -442,10 +469,10 @@ func DBAssignTasksStoryPoints(projectId int, taskRef string, assignerId string, 
 	}
 	return &newTask, nil
 }
-func DBUpdateTaskRecentProgress(taskId int, progressId int) (*Task, error) {
+func DBUpdateTaskRecentProgress(taskId int, completed bool) (*Task, error) {
 	var newTask Task
 	updatedTask := TaskUpdate{
-		RecentProgressId: &progressId,
+		Completed: &completed,
 	}
 
 	res, _, err := supabaseutil.Client.From("Tasks").Update(updatedTask, "representation", "").Eq("id", strconv.Itoa(taskId)).Single().Execute()
@@ -479,6 +506,73 @@ func DBTaskMarkComplete(projectId int, taskRef string, finishedDate *time.Time) 
 		return nil, err
 	}
 	return &newTask, nil
+}
+
+func DBGetSimillarTasksAssigned(discordId string, taskRefQuery string, isAssigner bool, projectId int) (*[]Task, error) {
+	var tasksMatch []Task
+	var res []byte
+	var err error
+	if isAssigner {
+		res, _, err = supabaseutil.Client.From("Tasks").Select("*", "", false).Eq("project_id", strconv.Itoa(projectId)).Eq("assigner_id", discordId).Ilike("task_ref", taskRefQuery+"%").Execute()
+	} else {
+		res, _, err = supabaseutil.Client.From("Tasks").Select("*", "", false).Eq("project_id", strconv.Itoa(projectId)).Eq("assigned_id", discordId).Ilike("task_ref", taskRefQuery+"%").Execute()
+	}
+
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &tasksMatch)
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+
+	return &tasksMatch, nil
+
+}
+
+func DBGetUnassignedTasks(discordId string, taskRefQuery string, projectId int) (*[]Task, error) {
+	var tasksMatch []Task
+	var res []byte
+	var err error
+
+	res, _, err = supabaseutil.Client.From("Tasks").Select("*", "", false).Eq("project_id", strconv.Itoa(projectId)).Is("assigned_id", "NULL").Ilike("task_ref", taskRefQuery+"%").Execute()
+
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &tasksMatch)
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+
+	return &tasksMatch, nil
+}
+
+func DBGetSimillarTasksAssignedAndSpecifyDone(discordId string, taskRefQuery string, isAssigner bool, projectId int, done bool) (*[]Task, error) {
+	var tasksMatch []Task
+	var res []byte
+	var err error
+	if isAssigner {
+		res, _, err = supabaseutil.Client.From("Tasks").Select("*", "", false).Eq("project_id", strconv.Itoa(projectId)).Eq("assigner_id", discordId).Eq("completed", strings.ToUpper(strconv.FormatBool(done))).Ilike("task_ref", taskRefQuery+"%").Execute()
+	} else {
+		res, _, err = supabaseutil.Client.From("Tasks").Select("*", "", false).Eq("project_id", strconv.Itoa(projectId)).Eq("assigned_id", discordId).Eq("completed", strings.ToUpper(strconv.FormatBool(done))).Ilike("task_ref", taskRefQuery+"%").Execute()
+	}
+
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &tasksMatch)
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+
+	return &tasksMatch, nil
 }
 
 //Progress commands

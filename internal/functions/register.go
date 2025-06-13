@@ -115,10 +115,11 @@ func RegisterCommands(s *discordgo.Session, guildId string) {
 							Required:    true,
 						},
 						{
-							Type:        discordgo.ApplicationCommandOptionString,
-							Name:        "taskref", // i should 100% make this auto complete
-							Description: "the task ref",
-							Required:    true,
+							Type:         discordgo.ApplicationCommandOptionString,
+							Name:         "taskref", // i should 100% make this auto complete
+							Description:  "the task ref (must start with milestone<id>/…)",
+							Autocomplete: true,
+							Required:     true,
 						},
 						{
 							Type:        discordgo.ApplicationCommandOptionString,
@@ -133,10 +134,11 @@ func RegisterCommands(s *discordgo.Session, guildId string) {
 					Type:        discordgo.ApplicationCommandOptionSubCommand,
 					Options: []*discordgo.ApplicationCommandOption{
 						{
-							Type:        discordgo.ApplicationCommandOptionString,
-							Name:        "taskref",
-							Description: "the complete taskref",
-							Required:    true,
+							Type:         discordgo.ApplicationCommandOptionString,
+							Name:         "taskref",
+							Description:  "the complete taskref (must start with milestone<id>/…)",
+							Autocomplete: true,
+							Required:     true,
 						},
 						{
 							Type:        discordgo.ApplicationCommandOptionString,
@@ -151,10 +153,11 @@ func RegisterCommands(s *discordgo.Session, guildId string) {
 					Type:        discordgo.ApplicationCommandOptionSubCommand,
 					Options: []*discordgo.ApplicationCommandOption{
 						{
-							Type:        discordgo.ApplicationCommandOptionString,
-							Name:        "taskref",
-							Description: "the completed taskref",
-							Required:    true,
+							Type:         discordgo.ApplicationCommandOptionString,
+							Name:         "taskref",
+							Description:  "the completed taskref (must start with milestone<id>/…)",
+							Autocomplete: true,
+							Required:     true,
 						},
 					},
 				}, {
@@ -163,10 +166,11 @@ func RegisterCommands(s *discordgo.Session, guildId string) {
 					Type:        discordgo.ApplicationCommandOptionSubCommand,
 					Options: []*discordgo.ApplicationCommandOption{
 						{
-							Type:        discordgo.ApplicationCommandOptionString,
-							Name:        "taskref",
-							Description: "the complete taskref",
-							Required:    true,
+							Type:         discordgo.ApplicationCommandOptionString,
+							Name:         "taskref",
+							Description:  "the complete taskref",
+							Autocomplete: true,
+							Required:     true,
 						}, {
 							Type:        discordgo.ApplicationCommandOptionString,
 							Name:        "desc",
@@ -180,10 +184,11 @@ func RegisterCommands(s *discordgo.Session, guildId string) {
 					Type:        discordgo.ApplicationCommandOptionSubCommand,
 					Options: []*discordgo.ApplicationCommandOption{
 						{
-							Type:        discordgo.ApplicationCommandOptionString,
-							Name:        "taskref",
-							Description: "the complete taskref",
-							Required:    true,
+							Type:         discordgo.ApplicationCommandOptionString,
+							Name:         "taskref",
+							Description:  "the complete taskref",
+							Autocomplete: true,
+							Required:     true,
 						}, {
 							Type:        discordgo.ApplicationCommandOptionString,
 							Name:        "desc",

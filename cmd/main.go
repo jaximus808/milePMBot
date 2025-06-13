@@ -40,6 +40,7 @@ func main() {
 
 	functions.ClearCommands(discord.DiscordSession, "738509536520044575")
 	functions.RegisterCommands(discord.DiscordSession, "738509536520044575")
+
 	log.Println("Bot Online")
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)

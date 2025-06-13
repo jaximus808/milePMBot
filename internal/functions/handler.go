@@ -1,7 +1,10 @@
 package functions
 
 import (
+	"log"
+
 	"github.com/bwmarrin/discordgo"
+	"github.com/jaximus808/milePMBot/internal/discord"
 	"github.com/jaximus808/milePMBot/internal/functions/milestones"
 	"github.com/jaximus808/milePMBot/internal/functions/projects"
 	"github.com/jaximus808/milePMBot/internal/functions/tasks"
@@ -12,6 +15,7 @@ const CommandPrefix = "/"
 
 // Autocomplete interaction handler
 func autocompleteHandler(sess *discordgo.Session, interaction *discordgo.InteractionCreate) {
+
 	cmd := interaction.ApplicationCommandData().Name
 	switch cmd {
 	case "task":
@@ -20,46 +24,81 @@ func autocompleteHandler(sess *discordgo.Session, interaction *discordgo.Interac
 }
 
 func handleTaskAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	// options := i.ApplicationCommandData().Options
-	// var focused *discordgo.ApplicationCommandInteractionDataOption
+	data := i.ApplicationCommandData()
+	// Find which option is focused
+	// I need to implement a cache here to speed up performance
+	for _, opt := range data.Options[0].Options {
+		if opt.Focused && opt.Name == "taskref" {
+			prefix := opt.StringValue()
 
-	// // Find the focused option
-	// for _, opt := range options {
-	// 	if opt.Focused {
-	// 		focused = opt
-	// 		break
-	// 	}
-	// }
+			// first validate that the prefix is valid
+			if !util.ValidTaskQuery(prefix) {
+				log.Print("no options")
+				return
+			}
 
-	// if focused == nil || focused.Name != "op" {
-	// 	log.Println("No focused option found or not 'name'")
-	// 	return
-	// }
+			subComamndName := data.Options[0].Name
 
-	// query := strings.ToLower(focused.StringValue())
+			channel, errChannel := discord.DiscordSession.Channel(i.ChannelID)
+			if errChannel != nil || channel == nil {
+				log.Printf("failed to get channel")
+				return
+			}
 
-	// // Simulate dynamic task names (replace with DB query etc.)
-	// allTasks := []string{"create", "assign", "done", "approve", "reject"}
-	// var suggestions []*discordgo.ApplicationCommandOptionChoice
+			if channel.ParentID == "" {
+				log.Printf("not in a channel category")
+				return
+			}
 
-	// for _, task := range allTasks {
-	// 	if strings.Contains(strings.ToLower(task), query) {
-	// 		suggestions = append(suggestions, &discordgo.ApplicationCommandOptionChoice{
-	// 			Name:  task,
-	// 			Value: task,
-	// 		})
-	// 	}
-	// 	if len(suggestions) >= 25 {
-	// 		break
-	// 	}
-	// }
+			activeProject, errActiveProject := util.DBGetActiveProject(channel.GuildID, channel.ParentID)
 
-	// s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-	// 	Type: discordgo.InteractionApplicationCommandAutocompleteResult,
-	// 	Data: &discordgo.InteractionResponseData{
-	// 		Choices: suggestions,
-	// 	},
-	// })
+			if errActiveProject != nil || activeProject == nil {
+				log.Printf("No active project is running!")
+				return
+			}
+
+			// if this is true, we're getting stories that are user has assigned
+			var isAssigner = subComamndName == "reject" || subComamndName == "approve"
+
+			// log.Printf("%s %s %t %d", i.Member.User.ID, prefix, isAssigner, *activeProject.ProjectID)
+
+			var taskOptions *[]util.Task
+			var taskOptionsError error
+
+			// i need to restrict this to allow auto complete for leads
+			if subComamndName == "assign" {
+				taskOptions, taskOptionsError = util.DBGetUnassignedTasks(i.Member.User.ID, prefix, *activeProject.ProjectID)
+			} else {
+				taskOptions, taskOptionsError = util.DBGetSimillarTasksAssignedAndSpecifyDone(i.Member.User.ID, prefix, isAssigner, *activeProject.ProjectID, isAssigner)
+			}
+
+			if taskOptionsError != nil || taskOptions == nil {
+
+				log.Print("no options")
+				return
+			}
+
+			// // Fetch & filter your tasks/types from your DB:
+			// matches := fetchTypeRefs(prefix) // implement to query: WHERE name ILIKE prefix||'%' LIMIT 25
+
+			// // Build up to 25 choices
+			var choices []*discordgo.ApplicationCommandOptionChoice
+			for _, taskOption := range *taskOptions {
+				choices = append(choices, &discordgo.ApplicationCommandOptionChoice{
+					Name:  *taskOption.TaskRef,
+					Value: taskOption.TaskRef,
+				})
+			}
+
+			// Send autocomplete response
+			_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionApplicationCommandAutocompleteResult,
+				Data: &discordgo.InteractionResponseData{Choices: choices},
+			})
+			return
+		}
+	}
+
 }
 
 func commandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -68,15 +107,6 @@ func commandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	baseCommand := data.Name
 	subCommand := data.Options[0]
-
-	// for _, opt := range data.Options {
-	// 	switch opt.Name {
-	// 	case "op":
-	// 		subCommand = opt.StringValue()
-	// 	case "args":
-	// 		args = strings.Fields(opt.StringValue())
-	// 	}
-	// }
 
 	var commandFunction func(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport
 	var exists bool
@@ -124,6 +154,7 @@ func MainHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	// if msg.Author.ID == sess.State.User.ID {
 	// 	return
 	// }
+
 	switch i.Type {
 	case discordgo.InteractionApplicationCommand:
 		commandHandler(s, i)
