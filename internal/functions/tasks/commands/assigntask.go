@@ -45,6 +45,8 @@ func AssignTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Applic
 
 	//TODO: Make a better output prompt or just data dump
 	// Need also a check to make sure the task isn't already done
+
+	//fix this
 	if dateError != nil {
 		storyPoint, errStoryPoint := strconv.Atoi(taskExpectations)
 		if errStoryPoint != nil {

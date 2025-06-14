@@ -9,6 +9,8 @@ import (
 
 func AddTask(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
 
+	// ADD THE UNDERSCORE STUFF
+
 	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
 	if errorHandle != nil {
 		return errorHandle

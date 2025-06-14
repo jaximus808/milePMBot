@@ -395,7 +395,7 @@ func DBCreateTasks(projectId int, task_name string, desc string, milestone_id in
 	var newTask Task
 	insertedTask := TaskInsert{
 		TaskName:    &task_name,
-		TaskRef:     ptrString(fmt.Sprintf("milestone%d/%s", milestone_id, task_name)),
+		TaskRef:     ptrString(fmt.Sprintf("milestone%d/%s", milestone_id, strings.ReplaceAll(task_name, " ", "_"))),
 		ProjectID:   &projectId,
 		Desc:        &desc,
 		MilestoneID: &milestone_id,
@@ -438,7 +438,7 @@ func DBAssignTasksDueDate(projectId int, taskRef string, assignerId string, assi
 
 	res, _, err := supabaseutil.Client.From("Tasks").Update(updatedTask, "representation", "").Eq("project_id", strconv.Itoa(projectId)).Eq("task_ref", taskRef).Single().Execute()
 	if err != nil {
-		log.Printf("Error unmarshaling response: %v", err)
+		log.Printf("MEOWW ?Error unmarshaling response: %v", err)
 		return nil, err
 	}
 	err = json.Unmarshal(res, &newTask)
@@ -552,14 +552,14 @@ func DBGetUnassignedTasks(discordId string, taskRefQuery string, projectId int) 
 	return &tasksMatch, nil
 }
 
-func DBGetSimillarTasksAssignedAndSpecifyDone(discordId string, taskRefQuery string, isAssigner bool, projectId int, done bool) (*[]Task, error) {
+func DBGetTasksAndSpecifyDC(discordId string, taskRefQuery string, isAssigner bool, projectId int, done bool, complete bool) (*[]Task, error) {
 	var tasksMatch []Task
 	var res []byte
 	var err error
 	if isAssigner {
-		res, _, err = supabaseutil.Client.From("Tasks").Select("*", "", false).Eq("project_id", strconv.Itoa(projectId)).Eq("assigner_id", discordId).Eq("completed", strings.ToUpper(strconv.FormatBool(done))).Ilike("task_ref", taskRefQuery+"%").Execute()
+		res, _, err = supabaseutil.Client.From("Tasks").Select("*", "", false).Eq("project_id", strconv.Itoa(projectId)).Eq("assigner_id", discordId).Eq("completed", strings.ToUpper(strconv.FormatBool(done))).Eq("done", strings.ToUpper(strconv.FormatBool(complete))).Ilike("task_ref", taskRefQuery+"%").Execute()
 	} else {
-		res, _, err = supabaseutil.Client.From("Tasks").Select("*", "", false).Eq("project_id", strconv.Itoa(projectId)).Eq("assigned_id", discordId).Eq("completed", strings.ToUpper(strconv.FormatBool(done))).Ilike("task_ref", taskRefQuery+"%").Execute()
+		res, _, err = supabaseutil.Client.From("Tasks").Select("*", "", false).Eq("project_id", strconv.Itoa(projectId)).Eq("assigned_id", discordId).Eq("completed", strings.ToUpper(strconv.FormatBool(done))).Eq("done", strings.ToUpper(strconv.FormatBool(complete))).Ilike("task_ref", taskRefQuery+"%").Execute()
 	}
 
 	if err != nil {

@@ -23,6 +23,9 @@ func autocompleteHandler(sess *discordgo.Session, interaction *discordgo.Interac
 	}
 }
 
+// RANDOM ERROR!!
+// 2025/06/13 22:21:34 Error unmarshaling response: parsing time "2025-06-20T00:00:00" as "2006-01-02T15:04:05Z07:00": cannot parse "" as "Z07:00" ERROR WTF
+
 func handleTaskAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
 	// Find which option is focused
@@ -33,7 +36,6 @@ func handleTaskAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate
 
 			// first validate that the prefix is valid
 			if !util.ValidTaskQuery(prefix) {
-				log.Print("no options")
 				return
 			}
 
@@ -69,12 +71,10 @@ func handleTaskAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate
 			if subComamndName == "assign" {
 				taskOptions, taskOptionsError = util.DBGetUnassignedTasks(i.Member.User.ID, prefix, *activeProject.ProjectID)
 			} else {
-				taskOptions, taskOptionsError = util.DBGetSimillarTasksAssignedAndSpecifyDone(i.Member.User.ID, prefix, isAssigner, *activeProject.ProjectID, isAssigner)
+				taskOptions, taskOptionsError = util.DBGetTasksAndSpecifyDC(i.Member.User.ID, prefix, isAssigner, *activeProject.ProjectID, isAssigner, false)
 			}
 
 			if taskOptionsError != nil || taskOptions == nil {
-
-				log.Print("no options")
 				return
 			}
 
