@@ -2,7 +2,7 @@ package tasks
 
 import (
 	"fmt"
-	"log"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/jaximus808/milePMBot/internal/util"
@@ -22,8 +22,6 @@ func CompleteTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appl
 
 	taskRef := util.GetOptionValue(args.Options, "taskref")
 	desc := util.GetOptionValue(args.Options, "desc")
-
-	log.Printf("got task ref %s", taskRef)
 
 	currentTask, errorCurrentTask := util.DBGetTask(currentProject.ID, taskRef)
 
@@ -52,7 +50,18 @@ func CompleteTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appl
 	return util.CreateHandleReportAndOutput(
 		true,
 		"Marked as completed and sent to your assigner for review! ",
-		fmt.Sprintf("Task **%s** Completed!\nTask Ref: %s\n<@%s> Please review and approve/reject with !task [approve/reject] %s\nDesc: %s", *currentTask.TaskName, *currentTask.TaskRef, *currentTask.AssignerID, *currentTask.TaskRef, desc),
+		&discordgo.MessageEmbed{
+			Title:       "✅ Task Completed",
+			Description: fmt.Sprintf("<@%s> has completed a task.", *updatedTask.AssignedID),
+			Color:       0x2ECC71, // Green
+			Fields: []*discordgo.MessageEmbedField{
+				{Name: "Task", Value: *updatedTask.TaskName, Inline: false},
+				{Name: "Task Ref", Value: *updatedTask.TaskRef, Inline: false},
+				{Name: "Notes", Value: desc, Inline: false},
+				{Name: "For Assigner", Value: fmt.Sprintf("<%s> Review this work and approve/disapprove with /task [approve/disapprove]", *updatedTask.AssignerID), Inline: false},
+			},
+			Timestamp: time.Now().Format(time.RFC3339),
+		},
 		*currentProject.OutputChannel,
 	)
 }

@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/jaximus808/milePMBot/internal/util"
@@ -54,7 +55,18 @@ func AddTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Applicati
 		true,
 		fmt.Sprintf("Created task with task_ref: %s ",
 			*newTask.TaskRef),
-		fmt.Sprintf("Task **%s** Created\nTask_ref: %s", *newTask.TaskName, *newTask.TaskRef),
+		&discordgo.MessageEmbed{
+			Title:       "🆕 Task Created",
+			Description: "A new task has been added to the project.",
+			Color:       0x3498DB, // Blue
+			Fields: []*discordgo.MessageEmbedField{
+				{Name: "Task", Value: taskName, Inline: false},
+				{Name: "Task Ref", Value: *newTask.TaskRef, Inline: false},
+				{Name: "Description", Value: taskDesc, Inline: false},
+				{Name: "Created By", Value: fmt.Sprintf("<@%s>", msgInstance.Member.User.ID), Inline: false},
+			},
+			Timestamp: time.Now().Format(time.RFC3339),
+		},
 		*currentProject.OutputChannel,
 	)
 }

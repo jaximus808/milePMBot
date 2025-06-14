@@ -1,6 +1,7 @@
 package milestones
 
 import (
+	"fmt"
 	"strconv"
 	"time"
 
@@ -40,5 +41,16 @@ func CreateMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.A
 		return util.CreateHandleReport(false, "failed to make milestone tied to project")
 	}
 
-	return util.CreateHandleReport(true, "successfully created milestone with id: "+strconv.Itoa(milestone.ID))
+	return util.CreateHandleReportAndOutput(true,
+		"successfully created milestone with id: "+strconv.Itoa(milestone.ID), &discordgo.MessageEmbed{
+			Title:       "🪜 New Milestone Created",
+			Description: fmt.Sprintf("A new milestone **%s** has been added to the project!", *milestone.DisplayName),
+			Color:       0x5865F2, // Discord blurple
+			Fields: []*discordgo.MessageEmbedField{
+				{Name: "Milestone Name", Value: msName, Inline: false},
+				{Name: "Due Date", Value: msDate.Format("January 2, 2006"), Inline: false}, // if available
+			},
+			Timestamp: time.Now().Format(time.RFC3339),
+		}, *currentProject.OutputChannel,
+	)
 }

@@ -26,7 +26,7 @@ type HandleReport struct {
 	timestamp  time.Time
 	info       string
 	outputNeed bool
-	outmsg     string
+	outemdded  *discordgo.MessageEmbed
 	outputId   string
 }
 
@@ -43,8 +43,8 @@ func (HR *HandleReport) GetTime() time.Time {
 func (HR *HandleReport) NeedsOutput() bool {
 	return HR.outputNeed
 }
-func (HR *HandleReport) GetOutputMsg() string {
-	return HR.outmsg
+func (HR *HandleReport) GetOutputMsg() *discordgo.MessageEmbed {
+	return HR.outemdded
 }
 func (HR *HandleReport) GetOutputId() string {
 	return HR.outputId
@@ -55,7 +55,7 @@ func CreateHandleReport(success bool, info string) *HandleReport {
 		timestamp:  time.Now(),
 		info:       info,
 		outputNeed: false,
-		outmsg:     "",
+		outemdded:  nil,
 		outputId:   "",
 	}
 }
@@ -94,13 +94,13 @@ func GetOptionValue(options []*discordgo.ApplicationCommandInteractionDataOption
 	return ""
 }
 
-func CreateHandleReportAndOutput(success bool, info string, outMsg string, outputId string) *HandleReport {
+func CreateHandleReportAndOutput(success bool, info string, outemdded *discordgo.MessageEmbed, outputId string) *HandleReport {
 	return &HandleReport{
 		success:    success,
 		timestamp:  time.Now(),
 		info:       info,
 		outputNeed: true,
-		outmsg:     outMsg,
+		outemdded:  outemdded,
 		outputId:   outputId,
 	}
 }

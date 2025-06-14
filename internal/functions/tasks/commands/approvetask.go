@@ -32,7 +32,16 @@ func ApproveTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appli
 	return util.CreateHandleReportAndOutput(
 		true,
 		"Yay! Task is now marked as approved :smile:",
-		fmt.Sprintf("Task: %s **Approved**!\nRef: %s has been approved and marked completed", *updatedTask.TaskName, *updatedTask.TaskRef),
+		&discordgo.MessageEmbed{
+			Title:       "🎉 Task Approved",
+			Description: fmt.Sprintf("<@%s> approved the completion of a task.", msgInstance.Member.User.ID),
+			Color:       0x9B59B6, // Purple
+			Fields: []*discordgo.MessageEmbedField{
+				{Name: "Task", Value: *updatedTask.TaskName, Inline: false},
+				{Name: "Task Ref", Value: *updatedTask.TaskRef, Inline: false},
+			},
+			Timestamp: time.Now().Format(time.RFC3339),
+		},
 		*currentProject.OutputChannel,
 	)
 }

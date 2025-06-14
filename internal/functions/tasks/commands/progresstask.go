@@ -35,7 +35,17 @@ func ProgressTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appl
 	return util.CreateHandleReportAndOutput(
 		true,
 		"Got it! Updated progress and letting your assigner know",
-		fmt.Sprintf("Task: %s **Not Approved**\nTask Ref: %s\nReason: %s\n<@%s> Please review and remedy these changes", *currentTask.TaskName, *currentTask.TaskRef, desc, *currentTask.AssignedID),
+		&discordgo.MessageEmbed{
+			Title:       "📈 Progress Update",
+			Description: fmt.Sprintf("<@%s> added progress to a task.", *currentTask.AssignedID),
+			Color:       0xF1C40F, // Yellow
+			Fields: []*discordgo.MessageEmbedField{
+				{Name: "Task", Value: *currentTask.TaskName, Inline: false},
+				{Name: "Task Ref", Value: *currentTask.TaskRef, Inline: false},
+				{Name: "Progress Note", Value: desc, Inline: false}, // Assume `progressNote` is a string
+			},
+			Timestamp: time.Now().Format(time.RFC3339),
+		},
 		*currentProject.OutputChannel,
 	)
 

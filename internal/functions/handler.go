@@ -145,7 +145,7 @@ func commandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		},
 	})
 	if handleReport.NeedsOutput() {
-		s.ChannelMessageSend(handleReport.GetOutputId(), ">>> "+handleReport.GetOutputMsg())
+		s.ChannelMessageSendEmbed(handleReport.GetOutputId(), handleReport.GetOutputMsg())
 	}
 }
 
