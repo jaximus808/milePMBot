@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -42,6 +43,6 @@ func ApproveTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appli
 			},
 			Timestamp: time.Now().Format(time.RFC3339),
 		},
-		*currentProject.OutputChannel,
+		strconv.Itoa(*currentProject.OutputChannel),
 	)
 }

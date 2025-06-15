@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -38,6 +39,7 @@ func RejectTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Applic
 	if newProgress == nil || newProgressError != nil {
 		return util.CreateHandleReport(false, "something went wrong on our end :/")
 	}
+
 	return util.CreateHandleReportAndOutput(
 		true,
 		"We'll mark this as not approved and notify the assigned person",
@@ -52,6 +54,6 @@ func RejectTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Applic
 			},
 			Timestamp: time.Now().Format(time.RFC3339),
 		},
-		*currentProject.OutputChannel,
+		strconv.Itoa(*currentProject.OutputChannel),
 	)
 }

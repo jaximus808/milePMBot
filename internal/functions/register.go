@@ -196,6 +196,17 @@ func RegisterCommands(s *discordgo.Session, guildId string) {
 							Required:    true,
 						},
 					},
+				}, {
+					Name:        "list",
+					Description: "list tasks and their status for a project, pass a user @ to get their assigned tasks",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "user",
+							Description: "user to list tasks about",
+						},
+					},
 				},
 			},
 		},

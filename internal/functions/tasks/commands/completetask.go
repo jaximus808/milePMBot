@@ -2,6 +2,8 @@ package tasks
 
 import (
 	"fmt"
+	"log"
+	"strconv"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -29,8 +31,15 @@ func CompleteTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appl
 		return util.CreateHandleReport(false, "Invalid task ref")
 	}
 
+	userId, err := strconv.Atoi(msgInstance.Member.User.ID)
+
+	if err != nil {
+		log.Printf("severe error parsiing member id")
+		return util.CreateHandleReport(false, "something went wrong plz submit a ticket")
+	}
+
 	// now check if this task is even assigned to the user
-	if *currentTask.AssignedID != msgInstance.Member.User.ID {
+	if *currentTask.AssignedID != userId {
 		return util.CreateHandleReport(false, "This task isn't assigned to you")
 	}
 
@@ -52,16 +61,16 @@ func CompleteTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appl
 		"Marked as completed and sent to your assigner for review! ",
 		&discordgo.MessageEmbed{
 			Title:       "✅ Task Completed",
-			Description: fmt.Sprintf("<@%s> has completed a task.", *updatedTask.AssignedID),
+			Description: fmt.Sprintf("<@%d> has completed a task.", *updatedTask.AssignedID),
 			Color:       0x2ECC71, // Green
 			Fields: []*discordgo.MessageEmbedField{
 				{Name: "Task", Value: *updatedTask.TaskName, Inline: false},
 				{Name: "Task Ref", Value: *updatedTask.TaskRef, Inline: false},
 				{Name: "Notes", Value: desc, Inline: false},
-				{Name: "For Assigner", Value: fmt.Sprintf("<%s> Review this work and approve/disapprove with /task [approve/disapprove]", *updatedTask.AssignerID), Inline: false},
+				{Name: "For Assigner", Value: fmt.Sprintf("<%d> Review this work and approve/disapprove with /task [approve/disapprove]", *updatedTask.AssignerID), Inline: false},
 			},
 			Timestamp: time.Now().Format(time.RFC3339),
 		},
-		*currentProject.OutputChannel,
+		strconv.Itoa(*currentProject.OutputChannel),
 	)
 }

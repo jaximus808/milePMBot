@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"strconv"
 	"time"
@@ -47,6 +48,13 @@ func AssignTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Applic
 	//TODO: Make a better output prompt or just data dump
 	// Need also a check to make sure the task isn't already done
 
+	userId, idError := strconv.Atoi(msgInstance.Member.User.ID)
+	assignedUserIdInt, idAssignError := strconv.Atoi(assignedUserId)
+	if idError != nil || idAssignError != nil {
+		log.Print("something went horribly wrong")
+		return util.CreateHandleReport(false, "Something went super wrong")
+	}
+
 	//fix this
 	if dateError != nil {
 		storyPoint, errStoryPoint := strconv.Atoi(taskExpectations)
@@ -54,7 +62,7 @@ func AssignTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Applic
 			return util.CreateHandleReport(false, "Expecting 3 args [@assign] [task_ref] [due_date or story points]")
 		}
 
-		assignedTask, assignedError = util.DBAssignTasksStoryPoints(currentProject.ID, taskRef, msgInstance.Member.User.ID, assignedUserId, storyPoint)
+		assignedTask, assignedError = util.DBAssignTasksStoryPoints(currentProject.ID, taskRef, userId, assignedUserIdInt, storyPoint)
 
 		if assignedError != nil || assignedTask == nil {
 			return util.CreateHandleReport(false, "Invalid task_ref, are you sure this exists for the current milestone?")
@@ -62,7 +70,7 @@ func AssignTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Applic
 		moreDetails = fmt.Sprintf("Story Points: %d", storyPoint)
 
 	} else {
-		assignedTask, assignedError = util.DBAssignTasksDueDate(currentProject.ID, taskRef, msgInstance.Member.User.ID, assignedUserId, &dueDate)
+		assignedTask, assignedError = util.DBAssignTasksDueDate(currentProject.ID, taskRef, userId, assignedUserIdInt, &dueDate)
 
 		if assignedError != nil || assignedTask == nil {
 			return util.CreateHandleReport(false, "Invalid task_ref, are you sure this exists for the current milestone?")
@@ -86,7 +94,7 @@ func AssignTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Applic
 			},
 			Timestamp: time.Now().Format(time.RFC3339),
 		},
-		*currentProject.OutputChannel,
+		strconv.Itoa(*currentProject.OutputChannel),
 	)
 
 }

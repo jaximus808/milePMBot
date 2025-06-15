@@ -2,6 +2,7 @@ package projects
 
 import (
 	"log"
+	"strconv"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -42,8 +43,17 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 		return util.CreateHandleReport(false, "There already is an active project for this category!")
 	}
 
-	log.Printf("maowgood?")
-	project, insertErr := util.DBCreateProject(channel.GuildID, channel.ParentID, msgInstance.ChannelID, "new project!")
+	userId, userIdError := strconv.Atoi(msgInstance.Member.User.ID)
+	channelId, channelIdError := strconv.Atoi(msgInstance.ChannelID)
+	parentId, parentIdError := strconv.Atoi(channel.ParentID)
+	guildId, guildIdError := strconv.Atoi(channel.GuildID)
+
+	if userIdError != nil || channelIdError != nil || parentIdError != nil || guildIdError != nil {
+		log.Print("something went horribly wrong wiht int conversion")
+		return util.CreateHandleReport(false, "something went very wrong with int conversion, please make a ticket")
+	}
+
+	project, insertErr := util.DBCreateProject(guildId, parentId, channelId, "new project!")
 
 	if insertErr != nil || project == nil {
 		return util.CreateHandleReport(false, "failed to make project")
@@ -56,14 +66,14 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 		return util.CreateHandleReport(false, "failed to make milestone tied to project")
 	}
 
-	userRole, roleError := util.DBCreateRole(project.ID, msgInstance.Member.User.ID, int(util.LeadRole))
+	userRole, roleError := util.DBCreateRole(project.ID, userId, int(util.LeadRole))
 	if roleError != nil || userRole == nil {
 		return util.CreateHandleReport(false, "failed to make user role tied to project")
 	}
 	//I NEEED TO ADD SOME TIME OF FAILURE ROLLBACK
 
 	// everything good, now assign this project as an active project
-	activeProject, activeProjctError := util.DBCreateActiveProject(channel.GuildID, channel.ParentID, project.ID)
+	activeProject, activeProjctError := util.DBCreateActiveProject(guildId, parentId, project.ID)
 
 	if activeProjctError != nil || activeProject == nil {
 		return util.CreateHandleReport(false, "failed to create an active project :(")

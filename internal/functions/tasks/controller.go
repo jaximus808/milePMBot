@@ -13,4 +13,5 @@ var CommandMap = map[string](func(msgInstance *discordgo.InteractionCreate, args
 	"approve":  tasks.ApproveTask,
 	"reject":   tasks.RejectTask,
 	"progress": tasks.ProgressTask,
+	"list":     tasks.ListTasks,
 }

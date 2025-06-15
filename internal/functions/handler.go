@@ -23,9 +23,6 @@ func autocompleteHandler(sess *discordgo.Session, interaction *discordgo.Interac
 	}
 }
 
-// RANDOM ERROR!!
-// 2025/06/13 22:21:34 Error unmarshaling response: parsing time "2025-06-20T00:00:00" as "2006-01-02T15:04:05Z07:00": cannot parse "" as "Z07:00" ERROR WTF
-
 func handleTaskAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
 	// Find which option is focused

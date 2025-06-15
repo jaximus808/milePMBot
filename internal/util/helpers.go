@@ -30,6 +30,13 @@ type HandleReport struct {
 	outputId   string
 }
 
+type TaskReport struct {
+	Unnassigned []string
+	InProgress  []string
+	InReview    []string
+	Done        []string
+}
+
 func (HR *HandleReport) GetInfo() string {
 	return HR.info
 }
@@ -59,29 +66,98 @@ func CreateHandleReport(success bool, info string) *HandleReport {
 		outputId:   "",
 	}
 }
+
+// for time must make some service to convert to the requested timezone, or the timezone the bot is made
+func ParseTaskList(tasks *[]Task, guildId string) *TaskReport {
+
+	taskReport := &TaskReport{}
+
+	for _, task := range *tasks {
+		if *task.Done { // task is done
+
+			assignedMemberName := GetUserGuildNickname(guildId, strconv.Itoa(*task.AssignedID))
+			assignerMemberName := GetUserGuildNickname(guildId, strconv.Itoa(*task.AssignerID))
+
+			taskReport.Done = append(
+				taskReport.Done,
+				fmt.Sprintf("> 📌 **Task Name** %s\n> **Task Ref:** %s\n>Completed By: %s\n>Reviewed By: %s\n>Completed On: %s",
+					*task.TaskName,
+					*task.TaskRef,
+					assignedMemberName,
+					assignerMemberName,
+					task.FinishedDate.Format("01/02/2006 03:04 PM MST"),
+				),
+			)
+		} else if *task.Completed { // task is marked compelete by the user and ready for review
+
+			assignedMemberName := GetUserGuildNickname(guildId, strconv.Itoa(*task.AssignedID))
+			assignerMemberName := GetUserGuildNickname(guildId, strconv.Itoa(*task.AssignerID))
+
+			taskReport.InReview = append(
+				taskReport.InReview,
+				fmt.Sprintf("> 📌 **Task Name:** %s\n> **Task Ref:** %s\n> Completed By: %s\n> Waiting for Review: %s",
+					*task.TaskName,
+					*task.TaskRef,
+					assignedMemberName,
+					assignerMemberName,
+				),
+			)
+		} else if task.AssignedID != nil { // task is assigned, but clear not done by the previous checks
+
+			assignedMemberName := GetUserGuildNickname(guildId, strconv.Itoa(*task.AssignedID))
+			assignerMemberName := GetUserGuildNickname(guildId, strconv.Itoa(*task.AssignerID))
+
+			taskReport.InProgress = append(
+				taskReport.InProgress,
+				fmt.Sprintf("> 📌 **Task Name:** %s\n> **Task Ref:** %s\n> Assigned To: %s\n> Assigned By: %s",
+					*task.TaskName,
+					*task.TaskRef,
+					assignedMemberName,
+					assignerMemberName,
+				),
+			)
+		} else { // then must be unassigned
+			taskReport.Unnassigned = append(
+				taskReport.Unnassigned,
+				fmt.Sprintf("> 📌 **Task Name:** %s\n> **Task Ref:** %s\n",
+					*task.TaskName,
+					*task.TaskRef,
+				),
+			)
+		}
+	}
+
+	return taskReport
+}
+
+func GetUserGuildNickname(guildId string, userId string) string {
+	member, err := discord.DiscordSession.GuildMember(guildId, userId)
+	if err != nil {
+		return ""
+	}
+	return member.Nick
+
+}
+
 func ValidTaskQuery(s string) bool {
 	const base = "milestone"
 
-	// 1) still typing the word “milestone”?
 	if len(s) < len(base) {
 		return strings.HasPrefix(base, s)
 	}
-	// 2) they've typed all of “milestone” and maybe more
 	if s == base {
 		return true
 	}
 
-	rest := s[len(base):] // what comes after "milestone"
+	rest := s[len(base):]
 
-	// 3) digits only → still a valid milestone ID
 	if ok, _ := regexp.MatchString(`^[0-9]+$`, rest); ok {
 		return true
 	}
-	// 4) digits + "/" + anything → now we're querying sub-items under that milestone
+
 	if ok, _ := regexp.MatchString(`^[0-9]+\/.*`, rest); ok {
 		return true
 	}
-	// otherwise bail out
 	return false
 }
 
@@ -132,12 +208,12 @@ func SetUpProjectInfo(msgInstance *discordgo.InteractionCreate) (*Project, *Hand
 Active Project Methods
 */
 
-func DBCreateActiveProject(guildId string, pchannelId string, projectId int) (*ActiveProject, error) {
+func DBCreateActiveProject(guildId int, pchannelId int, projectId int) (*ActiveProject, error) {
 	var selectedActiveProject ActiveProject
 	insertedActiveProject := ActiveProjectInsert{
-		GuildID:    ptrString(guildId),
-		PChannelID: ptrString(pchannelId),
-		ProjectID:  ptrInt(projectId),
+		GuildID:    &guildId,
+		PChannelID: &pchannelId,
+		ProjectID:  &projectId,
 	}
 	res, _, err := supabaseutil.Client.From("ActiveProjects").Insert(insertedActiveProject, false, "", "representation", "").Single().Execute()
 	if err != nil {
@@ -172,7 +248,7 @@ func DBGetActiveProject(guildId string, pchannelId string) (*ActiveProject, erro
 Projects Methods
 */
 
-func DBCreateProject(guildId string, pchannelId string, outoutChannelId string, desc string) (*Project, error) {
+func DBCreateProject(guildId int, pchannelId int, outoutChannelId int, desc string) (*Project, error) {
 	var selectedProject Project
 	insertedProject := ProjectInsert{
 		GuildID:       &guildId,
@@ -349,7 +425,7 @@ func DBMilestoneExistDate(projectId int, deadline *time.Time) bool {
 
 	Role comamands
 */
-func DBCreateRole(projectId int, userId string, roleLevel int) (*Role, error) {
+func DBCreateRole(projectId int, userId int, roleLevel int) (*Role, error) {
 	var selectedRole Role
 	insertedRole := RoleInsert{
 		ProjectID: &projectId,
@@ -428,7 +504,39 @@ func DBGetTask(projectId int, taskRef string) (*Task, error) {
 
 	return &selectedTask, nil
 }
-func DBAssignTasksDueDate(projectId int, taskRef string, assignerId string, assignedId string, dueDate *time.Time) (*Task, error) {
+
+func DBGetTasksForMilestone(projectId int, milestoneId int) (*[]Task, error) {
+	var selectedTasks []Task
+	res, _, err := supabaseutil.Client.From("Tasks").Select("*", "", false).Eq("project_id", strconv.Itoa(projectId)).Eq("milestone_id", strconv.Itoa(milestoneId)).Execute()
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &selectedTasks)
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+
+	return &selectedTasks, nil
+}
+func DBGetTasksForMilestoneAndAssignedUser(projectId int, milestoneId int, userId string) (*[]Task, error) {
+	var selectedTasks []Task
+	res, _, err := supabaseutil.Client.From("Tasks").Select("*", "", false).Eq("project_id", strconv.Itoa(projectId)).Eq("milestone_id", strconv.Itoa(milestoneId)).Eq("assigned_id", userId).Execute()
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &selectedTasks)
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+
+	return &selectedTasks, nil
+}
+
+func DBAssignTasksDueDate(projectId int, taskRef string, assignerId int, assignedId int, dueDate *time.Time) (*Task, error) {
 	var newTask Task
 	updatedTask := TaskUpdate{
 		AssignedID: &assignedId,
@@ -449,7 +557,7 @@ func DBAssignTasksDueDate(projectId int, taskRef string, assignerId string, assi
 	return &newTask, nil
 }
 
-func DBAssignTasksStoryPoints(projectId int, taskRef string, assignerId string, assignedId string, storyPoint int) (*Task, error) {
+func DBAssignTasksStoryPoints(projectId int, taskRef string, assignerId int, assignedId int, storyPoint int) (*Task, error) {
 	var newTask Task
 	updatedTask := TaskUpdate{
 		AssignedID:  &assignedId,
@@ -488,6 +596,7 @@ func DBUpdateTaskRecentProgress(taskId int, completed bool) (*Task, error) {
 	return &newTask, nil
 }
 
+// used for approve, lowky this shit is so fucking bad
 func DBTaskMarkComplete(projectId int, taskRef string, finishedDate *time.Time) (*Task, error) {
 	var newTask Task
 	updatedTask := TaskUpdate{

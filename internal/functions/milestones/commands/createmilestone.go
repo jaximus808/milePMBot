@@ -51,6 +51,6 @@ func CreateMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.A
 				{Name: "Due Date", Value: msDate.Format("January 2, 2006"), Inline: false}, // if available
 			},
 			Timestamp: time.Now().Format(time.RFC3339),
-		}, *currentProject.OutputChannel,
+		}, strconv.Itoa(*currentProject.OutputChannel),
 	)
 }

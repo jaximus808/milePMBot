@@ -2,6 +2,7 @@ package tasks
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -37,7 +38,7 @@ func ProgressTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appl
 		"Got it! Updated progress and letting your assigner know",
 		&discordgo.MessageEmbed{
 			Title:       "📈 Progress Update",
-			Description: fmt.Sprintf("<@%s> added progress to a task.", *currentTask.AssignedID),
+			Description: fmt.Sprintf("<@%d> added progress to a task.", *currentTask.AssignedID),
 			Color:       0xF1C40F, // Yellow
 			Fields: []*discordgo.MessageEmbedField{
 				{Name: "Task", Value: *currentTask.TaskName, Inline: false},
@@ -46,7 +47,7 @@ func ProgressTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appl
 			},
 			Timestamp: time.Now().Format(time.RFC3339),
 		},
-		*currentProject.OutputChannel,
+		strconv.Itoa(*currentProject.OutputChannel),
 	)
 
 }

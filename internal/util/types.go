@@ -13,17 +13,17 @@ const (
 // ActiveProjects
 type ActiveProject struct {
 	CreatedAt  time.Time `json:"created_at"`
-	GuildID    *string   `json:"guildId"`
+	GuildID    *int      `json:"guildId"`
 	ID         int       `json:"id"`
-	PChannelID *string   `json:"pChannelId"`
+	PChannelID *int      `json:"pChannelId"`
 	ProjectID  *int      `json:"project_id"`
 }
 
 type ActiveProjectInsert struct {
 	CreatedAt  *time.Time `json:"created_at,omitempty"`
-	GuildID    *string    `json:"guildId,omitempty"`
+	GuildID    *int       `json:"guildId,omitempty"`
 	ID         *int       `json:"id,omitempty"`
-	PChannelID *string    `json:"pChannelId,omitempty"`
+	PChannelID *int       `json:"pChannelId,omitempty"`
 	ProjectID  *int       `json:"project_id,omitempty"`
 }
 
@@ -77,10 +77,10 @@ type Project struct {
 	CreatedAt     time.Time `json:"created_at"`
 	CurrentMID    *int      `json:"current_mid"`
 	Desc          *string   `json:"desc"`
-	GuildID       *string   `json:"guild_id"`
+	GuildID       *int      `json:"guild_id"`
 	ID            int       `json:"id"`
-	OutputChannel *string   `json:"output_channel"`
-	PChannelID    *string   `json:"pchannel_id"`
+	OutputChannel *int      `json:"output_channel"`
+	PChannelID    *int      `json:"pchannel_id"`
 	SprintEnabled *bool     `json:"sprint_enabled"`
 	SprintInt     *int      `json:"sprint_int"`
 	SprintMsg     *string   `json:"sprint_msg"`
@@ -93,10 +93,10 @@ type ProjectInsert struct {
 	CreatedAt     *time.Time `json:"created_at,omitempty"`
 	CurrentMID    *int       `json:"current_mid,omitempty"`
 	Desc          *string    `json:"desc,omitempty"`
-	GuildID       *string    `json:"guild_id,omitempty"`
+	GuildID       *int       `json:"guild_id,omitempty"`
 	ID            *int       `json:"id,omitempty"`
-	OutputChannel *string    `json:"output_channel,omitempty"`
-	PChannelID    *string    `json:"pchannel_id,omitempty"`
+	OutputChannel *int       `json:"output_channel,omitempty"`
+	PChannelID    *int       `json:"pchannel_id,omitempty"`
 	SprintEnabled *bool      `json:"sprint_enabled,omitempty"`
 	SprintInt     *int       `json:"sprint_int,omitempty"`
 	SprintMsg     *string    `json:"sprint_msg,omitempty"`
@@ -109,7 +109,7 @@ type ProjectUpdate = ProjectInsert
 // Roles
 type Role struct {
 	CreatedAt time.Time `json:"created_at"`
-	DiscordID *string   `json:"discord_id"`
+	DiscordID *int      `json:"discord_id"`
 	ID        int       `json:"id"`
 	ProjectID *int      `json:"project_id"`
 	RoleLevel int       `json:"role_level"`
@@ -117,7 +117,7 @@ type Role struct {
 
 type RoleInsert struct {
 	CreatedAt *time.Time `json:"created_at,omitempty"`
-	DiscordID *string    `json:"discord_id,omitempty"`
+	DiscordID *int       `json:"discord_id,omitempty"`
 	ID        *int       `json:"id,omitempty"`
 	ProjectID *int       `json:"project_id,omitempty"`
 	RoleLevel int        `json:"role_level,omitempty"`
@@ -127,8 +127,8 @@ type RoleUpdate = RoleInsert
 
 // Tasks
 type Task struct {
-	AssignedID   *string    `json:"assigned_id"`
-	AssignerID   *string    `json:"assigner_id"`
+	AssignedID   *int       `json:"assigned_id"`
+	AssignerID   *int       `json:"assigner_id"`
 	CreatedAt    time.Time  `json:"created_at"`
 	Desc         *string    `json:"desc"`
 	Done         *bool      `json:"done"`
@@ -144,8 +144,8 @@ type Task struct {
 }
 
 type TaskInsert struct {
-	AssignedID   *string    `json:"assigned_id,omitempty"`
-	AssignerID   *string    `json:"assigner_id,omitempty"`
+	AssignedID   *int       `json:"assigned_id,omitempty"`
+	AssignerID   *int       `json:"assigner_id,omitempty"`
 	CreatedAt    *time.Time `json:"created_at,omitempty"`
 	Desc         *string    `json:"desc,omitempty"`
 	Done         *bool      `json:"done,omitempty"`

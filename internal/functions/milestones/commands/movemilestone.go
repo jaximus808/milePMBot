@@ -2,6 +2,7 @@ package milestones
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -65,6 +66,6 @@ func MoveMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 			Description: fmt.Sprintf("The project's current milestone has now moved %s to **%s**.", displayDirection, *newMilestone.DisplayName),
 			Color:       0x1ABC9C, // Teal
 			Timestamp:   time.Now().Format(time.RFC3339),
-		}, *currentProject.OutputChannel,
+		}, strconv.Itoa(*currentProject.OutputChannel),
 	)
 }
