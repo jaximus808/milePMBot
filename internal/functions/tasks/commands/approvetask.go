@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	output "github.com/jaximus808/milePMBot/internal/ouput/discord"
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
@@ -19,7 +20,7 @@ func ApproveTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appli
 	}
 
 	if currentProject == nil {
-		return util.CreateHandleReport(false, "failed to get active project")
+		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
 	}
 
 	currentTime := time.Now()
@@ -27,12 +28,12 @@ func ApproveTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appli
 	updatedTask, errorUpdatedTask := util.DBTaskMarkComplete(currentProject.ID, taskRef, &currentTime)
 
 	if updatedTask == nil || errorUpdatedTask != nil {
-		return util.CreateHandleReport(false, "Failed to mark task as done :(")
+		return util.CreateHandleReport(false, output.FAIL_TASK_DNE)
 	}
 
 	return util.CreateHandleReportAndOutput(
 		true,
-		"Yay! Task is now marked as approved :smile:",
+		output.SUCCESS_APPROVING_TASK,
 		&discordgo.MessageEmbed{
 			Title:       "🎉 Task Approved",
 			Description: fmt.Sprintf("<@%s> approved the completion of a task.", msgInstance.Member.User.ID),

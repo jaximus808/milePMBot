@@ -1,4 +1,4 @@
-package functions
+package integration
 
 import (
 	"log"
@@ -20,6 +20,51 @@ func autocompleteHandler(sess *discordgo.Session, interaction *discordgo.Interac
 	switch cmd {
 	case "task":
 		handleTaskAutocomplete(sess, interaction)
+	case "setting":
+		handleSettingAutocomplete(sess, interaction)
+	}
+}
+
+func handleSettingAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	data := i.ApplicationCommandData()
+	// Find which option is focused
+	// I need to implement a cache here to speed up performance
+	for _, opt := range data.Options[0].Options {
+		if opt.Focused && opt.Name == "setting" {
+
+			_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionApplicationCommandAutocompleteResult,
+				Data: &discordgo.InteractionResponseData{
+					Choices: []*discordgo.ApplicationCommandOptionChoice{
+						{
+							Name:  "Output Channel [#channel]",
+							Value: "output",
+						},
+						{
+							Name:  "Project Description",
+							Value: "description",
+						},
+						{
+							Name:  "Sprint Message",
+							Value: "message",
+						},
+						{
+							Name:  "Toggle Sprint [y/n]",
+							Value: "sprints",
+						},
+						{
+							Name:  "Sprint Duration [# of weeks]",
+							Value: "duration",
+						},
+						{
+							Name:  "Toggle Weekly Pings [y/n]",
+							Value: "pings",
+						},
+					},
+				},
+			})
+			return
+		}
 	}
 }
 
@@ -40,12 +85,10 @@ func handleTaskAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate
 
 			channel, errChannel := discord.DiscordSession.Channel(i.ChannelID)
 			if errChannel != nil || channel == nil {
-				log.Printf("failed to get channel")
 				return
 			}
 
 			if channel.ParentID == "" {
-				log.Printf("not in a channel category")
 				return
 			}
 
@@ -95,7 +138,6 @@ func handleTaskAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate
 			return
 		}
 	}
-
 }
 
 func commandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -148,9 +190,6 @@ func commandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 // Command Handler
 func MainHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	// if msg.Author.ID == sess.State.User.ID {
-	// 	return
-	// }
 
 	switch i.Type {
 	case discordgo.InteractionApplicationCommand:

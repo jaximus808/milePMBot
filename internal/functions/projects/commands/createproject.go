@@ -1,12 +1,12 @@
 package projects
 
 import (
-	"log"
 	"strconv"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/jaximus808/milePMBot/internal/discord"
+	output "github.com/jaximus808/milePMBot/internal/ouput/discord"
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
@@ -15,24 +15,20 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 	// TODO: MUST ADD A CHECK THAT THERE IS NO ALREADY ACTIVE PROJECT
 
 	if msgInstance.GuildID == "" {
-		return util.CreateHandleReport(false, "Not in a discord server")
+		return util.CreateHandleReport(false, output.NOT_A_CHANNEL)
 	}
 
 	channel, err := discord.DiscordSession.Channel(msgInstance.ChannelID)
 
-	if err != nil {
-		return util.CreateHandleReport(false, "channel failed!")
-	}
-
-	if channel.ParentID == "" {
-		return util.CreateHandleReport(false, "message must be in a category!")
+	if err != nil || channel.ParentID == "" {
+		return util.CreateHandleReport(false, output.NOT_A_CHANNEL)
 	}
 
 	msName := util.GetOptionValue(args.Options, "msname")
 	msDate, dateError := time.Parse("01/02/2006", util.GetOptionValue(args.Options, "msdate"))
 	msDesc := util.GetOptionValue(args.Options, "desc")
 	if dateError != nil {
-		return util.CreateHandleReport(false, "incorrect date format, expect MM/DD/YYYY: "+dateError.Error())
+		return util.CreateHandleReport(false, output.FAIL_INCORRECT_DATE)
 	}
 
 	// first check if an active project exists
@@ -40,7 +36,7 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 	_, checkActiveProject := util.DBGetActiveProject(channel.GuildID, channel.ParentID)
 
 	if checkActiveProject == nil {
-		return util.CreateHandleReport(false, "There already is an active project for this category!")
+		return util.CreateHandleReport(false, output.FAIL_ALR_PROJECT)
 	}
 
 	userId, userIdError := strconv.Atoi(msgInstance.Member.User.ID)
@@ -49,26 +45,25 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 	guildId, guildIdError := strconv.Atoi(channel.GuildID)
 
 	if userIdError != nil || channelIdError != nil || parentIdError != nil || guildIdError != nil {
-		log.Print("something went horribly wrong wiht int conversion")
-		return util.CreateHandleReport(false, "something went very wrong with int conversion, please make a ticket")
+		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
 	project, insertErr := util.DBCreateProject(guildId, parentId, channelId, "new project!")
 
 	if insertErr != nil || project == nil {
-		return util.CreateHandleReport(false, "failed to make project")
+		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
 	// now add milestones
 
 	milestone, msError := util.DBCreateMilestone(project.ID, msName, &msDate, msDesc)
 	if msError != nil || milestone == nil {
-		return util.CreateHandleReport(false, "failed to make milestone tied to project")
+		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
 	userRole, roleError := util.DBCreateRole(project.ID, userId, int(util.LeadRole))
 	if roleError != nil || userRole == nil {
-		return util.CreateHandleReport(false, "failed to make user role tied to project")
+		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 	//I NEEED TO ADD SOME TIME OF FAILURE ROLLBACK
 
@@ -76,12 +71,12 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 	activeProject, activeProjctError := util.DBCreateActiveProject(guildId, parentId, project.ID)
 
 	if activeProjctError != nil || activeProject == nil {
-		return util.CreateHandleReport(false, "failed to create an active project :(")
+		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 	updatedProject, updateProjectError := util.DBUpdateCurrentMilestone(project.ID, milestone.ID)
 	if updateProjectError != nil || updatedProject == nil {
-		return util.CreateHandleReport(false, "failed to create an update milestone  :(")
+		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
-	return util.CreateHandleReport(true, "Successfully added project!")
+	return util.CreateHandleReport(true, output.SUCCESS_CREATE_PROJECT)
 }

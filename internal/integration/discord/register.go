@@ -1,4 +1,4 @@
-package functions
+package integration
 
 import (
 	"log"
@@ -32,6 +32,26 @@ func RegisterCommands(s *discordgo.Session, guildId string) {
 							Type:        discordgo.ApplicationCommandOptionString,
 							Name:        "desc",
 							Description: "description",
+							Required:    true,
+						},
+					},
+				},
+				{
+					Name:        "set",
+					Description: "update a project setting",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:         discordgo.ApplicationCommandOptionString,
+							Name:         "setting",
+							Description:  "the project setting to change",
+							Required:     true,
+							Autocomplete: true,
+						},
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "value",
+							Description: "the new setting value",
 							Required:    true,
 						},
 					},

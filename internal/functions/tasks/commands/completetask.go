@@ -2,11 +2,11 @@ package tasks
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	output "github.com/jaximus808/milePMBot/internal/ouput/discord"
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
@@ -14,12 +14,8 @@ func CompleteTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appl
 
 	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
 
-	if errorHandle != nil {
-		return util.CreateHandleReport(false, "no project exists here :(")
-	}
-
-	if currentProject == nil {
-		return util.CreateHandleReport(false, "no project exists here :(")
+	if errorHandle != nil || currentProject == nil {
+		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
 	}
 
 	taskRef := util.GetOptionValue(args.Options, "taskref")
@@ -28,37 +24,36 @@ func CompleteTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appl
 	currentTask, errorCurrentTask := util.DBGetTask(currentProject.ID, taskRef)
 
 	if errorCurrentTask != nil || currentTask == nil {
-		return util.CreateHandleReport(false, "Invalid task ref")
+		return util.CreateHandleReport(false, output.FAIL_TASK_DNE)
 	}
 
 	userId, err := strconv.Atoi(msgInstance.Member.User.ID)
 
 	if err != nil {
-		log.Printf("severe error parsiing member id")
-		return util.CreateHandleReport(false, "something went wrong plz submit a ticket")
+		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
 	// now check if this task is even assigned to the user
 	if *currentTask.AssignedID != userId {
-		return util.CreateHandleReport(false, "This task isn't assigned to you")
+		return util.CreateHandleReport(false, output.ERROR_NOT_YOUR_TASK)
 	}
 
 	//now we need to make a progress row then ask for review
 	newProgress, newProgressError := util.DBCreateProgress(currentTask.ID, desc, true)
 
 	if newProgressError != nil || newProgress == nil {
-		return util.CreateHandleReport(false, "Couldn't make a progress report :()")
+		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 	updatedTask, updatedTaskError := util.DBUpdateTaskRecentProgress(currentTask.ID, true)
 
 	if updatedTaskError != nil || updatedTask == nil {
-		return util.CreateHandleReport(false, "Failed to update task correctly")
+		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
 	//should make the option a helper function lol
 	return util.CreateHandleReportAndOutput(
 		true,
-		"Marked as completed and sent to your assigner for review! ",
+		output.SUCCESS_COMPLETE_TASK,
 		&discordgo.MessageEmbed{
 			Title:       "✅ Task Completed",
 			Description: fmt.Sprintf("<@%d> has completed a task.", *updatedTask.AssignedID),

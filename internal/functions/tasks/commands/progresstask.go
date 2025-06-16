@@ -6,18 +6,15 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	output "github.com/jaximus808/milePMBot/internal/ouput/discord"
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
 func ProgressTask(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
 
 	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
-	if errorHandle != nil {
-		return errorHandle
-	}
-
-	if currentProject == nil {
-		return util.CreateHandleReport(false, "failed to get active project")
+	if errorHandle != nil || currentProject == nil {
+		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
 	}
 
 	taskRef := util.GetOptionValue(args.Options, "taskref")
@@ -35,7 +32,7 @@ func ProgressTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appl
 	}
 	return util.CreateHandleReportAndOutput(
 		true,
-		"Got it! Updated progress and letting your assigner know",
+		output.SUCCESS_PROGRESS_ADDED,
 		&discordgo.MessageEmbed{
 			Title:       "📈 Progress Update",
 			Description: fmt.Sprintf("<@%d> added progress to a task.", *currentTask.AssignedID),

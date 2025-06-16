@@ -2,12 +2,12 @@ package tasks
 
 import (
 	"fmt"
-	"log"
 	"regexp"
 	"strconv"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	output "github.com/jaximus808/milePMBot/internal/ouput/discord"
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
@@ -51,21 +51,20 @@ func AssignTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Applic
 	userId, idError := strconv.Atoi(msgInstance.Member.User.ID)
 	assignedUserIdInt, idAssignError := strconv.Atoi(assignedUserId)
 	if idError != nil || idAssignError != nil {
-		log.Print("something went horribly wrong")
-		return util.CreateHandleReport(false, "Something went super wrong")
+		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
 	//fix this
 	if dateError != nil {
 		storyPoint, errStoryPoint := strconv.Atoi(taskExpectations)
 		if errStoryPoint != nil {
-			return util.CreateHandleReport(false, "Expecting 3 args [@assign] [task_ref] [due_date or story points]")
+			return util.CreateHandleReport(false, output.ERROR_ARGS_ASSIGN)
 		}
 
 		assignedTask, assignedError = util.DBAssignTasksStoryPoints(currentProject.ID, taskRef, userId, assignedUserIdInt, storyPoint)
 
 		if assignedError != nil || assignedTask == nil {
-			return util.CreateHandleReport(false, "Invalid task_ref, are you sure this exists for the current milestone?")
+			return util.CreateHandleReport(false, output.FAIL_TASK_DNE)
 		}
 		moreDetails = fmt.Sprintf("Story Points: %d", storyPoint)
 
@@ -73,7 +72,7 @@ func AssignTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Applic
 		assignedTask, assignedError = util.DBAssignTasksDueDate(currentProject.ID, taskRef, userId, assignedUserIdInt, &dueDate)
 
 		if assignedError != nil || assignedTask == nil {
-			return util.CreateHandleReport(false, "Invalid task_ref, are you sure this exists for the current milestone?")
+			return util.CreateHandleReport(false, output.FAIL_TASK_DNE)
 		}
 		moreDetails = fmt.Sprintf("Due Date: %s", dueDate)
 	}

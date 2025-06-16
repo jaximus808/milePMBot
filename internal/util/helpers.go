@@ -357,22 +357,22 @@ func DBGetProject(guildId string, pchannelId string) (*Project, error) {
 	return &selectedProject, nil
 }
 
-func DBUpdateCurrentMilestone(projectId int, milestoneId int) (*Project, error) {
-	var updatedProject Project
-	insertedProject := ProjectInsert{
-		CurrentMID: &milestoneId,
+func DBUpdateProjectOutputChannel(projectId int, outputId int) (*Project, error) {
+	var newProject Project
+	updatedProject := ProjectUpdate{
+		OutputChannel: &outputId,
 	}
-	res, _, err := supabaseutil.Client.From("Projects").Update(insertedProject, "representation", "").Eq("id", strconv.Itoa(projectId)).Single().Execute()
+	res, _, err := supabaseutil.Client.From("Projects").Update(updatedProject, "representation", "").Eq("id", strconv.Itoa(projectId)).Single().Execute()
 	if err != nil {
 		log.Printf("BROOO Error unmarshaling response: %v", err)
 		return nil, err
 	}
-	err = json.Unmarshal(res, &updatedProject)
+	err = json.Unmarshal(res, &newProject)
 	if err != nil {
 		log.Printf(" WTFFF Error unmarshaling response: %v", err)
 		return nil, err
 	}
-	return &updatedProject, nil
+	return &newProject, nil
 }
 
 // Milestone commands
@@ -451,6 +451,23 @@ func DBGetPrevMilestone(projectId int, curMilstone *Milestone) (*Milestone, erro
 		return nil, err
 	}
 	return &nextMilestone, nil
+}
+func DBUpdateCurrentMilestone(projectId int, milestoneId int) (*Project, error) {
+	var updatedProject Project
+	insertedProject := ProjectInsert{
+		CurrentMID: &milestoneId,
+	}
+	res, _, err := supabaseutil.Client.From("Projects").Update(insertedProject, "representation", "").Eq("id", strconv.Itoa(projectId)).Single().Execute()
+	if err != nil {
+		log.Printf("BROOO Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &updatedProject)
+	if err != nil {
+		log.Printf(" WTFFF Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	return &updatedProject, nil
 }
 
 func DBMilestoneExistDate(projectId int, deadline *time.Time) bool {

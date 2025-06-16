@@ -8,4 +8,5 @@ import (
 
 var CommandMap = map[string](func(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport){
 	"create": projects.CreateProject,
+	"set":    projects.SettingProject,
 }

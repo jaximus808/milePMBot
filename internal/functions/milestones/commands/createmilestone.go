@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	output "github.com/jaximus808/milePMBot/internal/ouput/discord"
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
@@ -18,27 +19,27 @@ func CreateMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.A
 	}
 
 	if currentProject == nil {
-		return util.CreateHandleReport(false, "failed to get active project")
+		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
 	}
 
 	msName := util.GetOptionValue(args.Options, "msname")
 	msDate, dateError := time.Parse("01/02/2006", util.GetOptionValue(args.Options, "msdate"))
 	msDesc := util.GetOptionValue(args.Options, "desc")
 	if dateError != nil {
-		return util.CreateHandleReport(false, "incorrect date format, expect MM/DD/YYYY")
+		return util.CreateHandleReport(false, output.FAIL_INCORRECT_DATE)
 	}
 
 	milestoneExist := util.DBMilestoneExistDate(currentProject.ID, &msDate)
 
 	if milestoneExist {
-		return util.CreateHandleReport(false, "two milestones can't have the same date!!!")
+		return util.CreateHandleReport(false, output.FAIL_MS_SAME_DATE)
 	}
 
 	// now add milestones
 
 	milestone, msError := util.DBCreateMilestone(currentProject.ID, msName, &msDate, msDesc)
 	if msError != nil || milestone == nil {
-		return util.CreateHandleReport(false, "failed to make milestone tied to project")
+		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
 	return util.CreateHandleReportAndOutput(true,

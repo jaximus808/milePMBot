@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	output "github.com/jaximus808/milePMBot/internal/ouput/discord"
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
@@ -16,13 +17,13 @@ func ListMilestones(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 	}
 
 	if currentProject == nil {
-		return util.CreateHandleReport(false, "failed to get active project")
+		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
 	}
 
 	milestoneList, milestoneListError := util.DBGetMilestoneListDescending(currentProject.ID)
 
 	if milestoneListError != nil || milestoneList == nil {
-		return util.CreateHandleReport(false, "Error getting milestones on our end :(")
+		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
 	emeddedMessage := &discordgo.MessageEmbed{

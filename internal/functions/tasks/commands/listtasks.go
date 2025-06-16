@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	output "github.com/jaximus808/milePMBot/internal/ouput/discord"
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
@@ -107,12 +108,8 @@ func getTaskForMilestone(i *discordgo.InteractionCreate) *util.HandleReport {
 func getTaskForMilestoneForUser(i *discordgo.InteractionCreate, userId string) *util.HandleReport {
 	currentProject, errorHandle := util.SetUpProjectInfo(i)
 
-	if errorHandle != nil {
-		return util.CreateHandleReport(false, "no project exists here :(")
-	}
-
-	if currentProject == nil {
-		return util.CreateHandleReport(false, "no project exists here :(")
+	if errorHandle != nil || currentProject == nil {
+		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
 	}
 
 	emeddedMessage := &discordgo.MessageEmbed{
@@ -124,7 +121,7 @@ func getTaskForMilestoneForUser(i *discordgo.InteractionCreate, userId string) *
 
 	tasks, tasksError := util.DBGetTasksForMilestoneAndAssignedUser(currentProject.ID, *currentProject.CurrentMID, userId)
 	if tasksError != nil || tasks == nil {
-		return util.CreateHandleReport(false, "There are no tasks for the user!")
+		return util.CreateHandleReport(false, output.ERROR_USER_NO_TASK)
 	}
 
 	taskReport := util.ParseTaskList(tasks, i.GuildID)
@@ -167,7 +164,7 @@ func getTaskForMilestoneForUser(i *discordgo.InteractionCreate, userId string) *
 
 	return util.CreateHandleReportAndOutput(
 		true,
-		"List Made!",
+		output.SUCCESS_TASK_LIST,
 		emeddedMessage,
 		i.ChannelID,
 	)

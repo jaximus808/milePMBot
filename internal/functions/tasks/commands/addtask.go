@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	output "github.com/jaximus808/milePMBot/internal/ouput/discord"
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
@@ -19,17 +20,17 @@ func AddTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Applicati
 	}
 
 	if currentProject == nil {
-		return util.CreateHandleReport(false, "failed to get active project")
+		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
 	}
 
 	userRole, errorRole := util.DBGetRole(currentProject.ID, msgInstance.Member.User.ID)
 
 	if errorRole != nil || userRole == nil {
-		return util.CreateHandleReport(false, "you lack the right perms to do this!")
+		return util.CreateHandleReport(false, output.FAIL_PERMS)
 	}
 
 	if userRole.RoleLevel < int(util.LeadRole) {
-		return util.CreateHandleReport(false, "you lack the right perms to do this!")
+		return util.CreateHandleReport(false, output.FAIL_PERMS)
 	}
 
 	// user has permisisons now
@@ -49,7 +50,7 @@ func AddTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Applicati
 	newTask, taskError := util.DBCreateTasks(currentProject.ID, taskName, taskDesc, *currentProject.CurrentMID)
 
 	if taskError != nil || newTask == nil {
-		return util.CreateHandleReport(false, "failed to create task, ensure this task has a unique name for the given milestone!")
+		return util.CreateHandleReport(false, output.FAIL_CREATE_TASK)
 	}
 
 	return util.CreateHandleReportAndOutput(

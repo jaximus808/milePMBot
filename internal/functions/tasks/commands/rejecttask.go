@@ -6,18 +6,15 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	output "github.com/jaximus808/milePMBot/internal/ouput/discord"
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
 func RejectTask(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
 
 	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
-	if errorHandle != nil {
-		return errorHandle
-	}
-
-	if currentProject == nil {
-		return util.CreateHandleReport(false, "failed to get active project")
+	if errorHandle != nil || currentProject == nil {
+		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
 	}
 
 	taskRef := util.GetOptionValue(args.Options, "taskref")
@@ -28,21 +25,21 @@ func RejectTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Applic
 	currentTask, currentTaskError := util.DBGetTask(currentProject.ID, taskRef)
 
 	if currentTask == nil || currentTaskError != nil {
-		return util.CreateHandleReport(false, "failed to get task, check your task_ref!")
+		return util.CreateHandleReport(false, output.FAIL_TASK_DNE)
 	}
 	updatedTask, updatedTaskError := util.DBUpdateTaskRecentProgress(currentTask.ID, false)
 	if updatedTaskError != nil || updatedTask == nil {
-		return util.CreateHandleReport(false, "Failed to update task correctly")
+		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
 	newProgress, newProgressError := util.DBCreateProgress(currentTask.ID, fmt.Sprintf("Not Approved: %s", desc), false)
 	if newProgress == nil || newProgressError != nil {
-		return util.CreateHandleReport(false, "something went wrong on our end :/")
+		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
 	return util.CreateHandleReportAndOutput(
 		true,
-		"We'll mark this as not approved and notify the assigned person",
+		output.SUCCESS_REJECT,
 		&discordgo.MessageEmbed{
 			Title:       "❌ Task Not Approved",
 			Description: fmt.Sprintf("<@%s> did not approve the task. Please review and make necessary changes.", msgInstance.Member.User.ID),

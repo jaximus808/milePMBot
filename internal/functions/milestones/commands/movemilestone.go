@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	output "github.com/jaximus808/milePMBot/internal/ouput/discord"
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
@@ -18,7 +19,7 @@ func MoveMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 	}
 
 	if currentProject == nil {
-		return util.CreateHandleReport(false, "failed to get active project")
+		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
 	}
 
 	currentMilestone, errorCurrentMilestone := util.DBGetMilestoneWithId(*currentProject.CurrentMID)
@@ -27,7 +28,7 @@ func MoveMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 	}
 
 	if currentMilestone == nil {
-		return util.CreateHandleReport(false, "failed to get active milestone")
+		return util.CreateHandleReport(false, output.FAIL_ACTIVE_MS)
 	}
 	direction := util.GetOptionValue(args.Options, "direction")
 

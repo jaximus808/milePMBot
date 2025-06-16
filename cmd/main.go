@@ -7,7 +7,7 @@ import (
 	"os/signal"
 
 	"github.com/jaximus808/milePMBot/internal/discord"
-	"github.com/jaximus808/milePMBot/internal/functions"
+	integration "github.com/jaximus808/milePMBot/internal/integration/discord"
 	"github.com/jaximus808/milePMBot/internal/supabaseutil"
 	"github.com/joho/godotenv"
 )
@@ -30,7 +30,7 @@ func main() {
 		fmt.Print(discErr.Error())
 	}
 
-	discord.DiscordSession.AddHandler(functions.MainHandler)
+	discord.DiscordSession.AddHandler(integration.MainHandler)
 
 	openErr := discord.DiscordSession.Open()
 	if openErr != nil {
@@ -38,8 +38,8 @@ func main() {
 	}
 	defer discord.DiscordSession.Close()
 
-	functions.ClearCommands(discord.DiscordSession, "738509536520044575")
-	functions.RegisterCommands(discord.DiscordSession, "738509536520044575")
+	integration.ClearCommands(discord.DiscordSession, "738509536520044575")
+	integration.RegisterCommands(discord.DiscordSession, "738509536520044575")
 
 	log.Println("Bot Online")
 	stop := make(chan os.Signal, 1)
