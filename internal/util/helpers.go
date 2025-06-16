@@ -37,6 +37,12 @@ type TaskReport struct {
 	Done        []string
 }
 
+type MilestoneReport struct {
+	Upcoming         []string
+	CurrentMilestone string
+	Previous         []string
+}
+
 func (HR *HandleReport) GetInfo() string {
 	return HR.info
 }
@@ -67,6 +73,39 @@ func CreateHandleReport(success bool, info string) *HandleReport {
 	}
 }
 
+// milestones is assumed to be inorder
+func ParseMilestoneList(milestones *[]Milestone, currentMid int) *MilestoneReport {
+
+	milestoneMap := &MilestoneReport{}
+
+	upcomingParsing := true
+	// get the id of te curent MID
+
+	for _, milestone := range *milestones {
+		if milestone.ID == currentMid {
+			milestoneMap.CurrentMilestone = fmt.Sprintf("> Milestone: %s\n> Description: %s", *milestone.DisplayName, *milestone.Description)
+			upcomingParsing = false
+
+		} else if upcomingParsing {
+			milestoneMap.Upcoming = append(
+				milestoneMap.Upcoming,
+				fmt.Sprintf("> Milestone: %s\n> Description: %s", *milestone.DisplayName, *milestone.Description),
+			)
+		} else {
+			if upcomingParsing {
+				milestoneMap.Previous = append(
+					milestoneMap.Previous,
+					fmt.Sprintf("> Milestone: %s\n> Description: %s", *milestone.DisplayName, *milestone.Description),
+				)
+			}
+		}
+
+	}
+
+	return milestoneMap
+
+}
+
 // for time must make some service to convert to the requested timezone, or the timezone the bot is made
 func ParseTaskList(tasks *[]Task, guildId string) *TaskReport {
 
@@ -80,7 +119,7 @@ func ParseTaskList(tasks *[]Task, guildId string) *TaskReport {
 
 			taskReport.Done = append(
 				taskReport.Done,
-				fmt.Sprintf("> 📌 **Task Name** %s\n> **Task Ref:** %s\n>Completed By: %s\n>Reviewed By: %s\n>Completed On: %s",
+				fmt.Sprintf("> 📌 **Task Name** %s\n> **Task Ref:** %s\n> Completed By: %s\n> Reviewed By: %s\n> Completed On: %s",
 					*task.TaskName,
 					*task.TaskRef,
 					assignedMemberName,
@@ -418,6 +457,26 @@ func DBMilestoneExistDate(projectId int, deadline *time.Time) bool {
 	_, _, err := supabaseutil.Client.From("Milestones").Select("id", "", false).Eq("project_id", strconv.Itoa(projectId)).Eq("due_date", deadline.Format(time.RFC3339)).Single().Execute()
 
 	return err == nil
+}
+
+func DBGetMilestoneListDescending(projectId int) (*[]Milestone, error) {
+	var milestoneList []Milestone
+	orderOptions := &postgrest.DefaultOrderOpts
+
+	orderOptions.Ascending = false
+
+	res, _, err := supabaseutil.Client.From("Milestones").Select("*", "", false).Eq("project_id", strconv.Itoa(projectId)).Order("due_date", orderOptions).Execute()
+
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &milestoneList)
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	return &milestoneList, nil
 }
 
 /*

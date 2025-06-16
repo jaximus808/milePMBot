@@ -39,7 +39,7 @@ func getTaskForMilestone(i *discordgo.InteractionCreate) *util.HandleReport {
 	}
 
 	emeddedMessage := &discordgo.MessageEmbed{
-		Title:       "📋 Task Information",
+		Title:       "📋 Task List",
 		Description: "For: current milestone",
 		Color:       0x4A90E2, // Green
 		Timestamp:   time.Now().Format(time.RFC3339),
@@ -116,7 +116,7 @@ func getTaskForMilestoneForUser(i *discordgo.InteractionCreate, userId string) *
 	}
 
 	emeddedMessage := &discordgo.MessageEmbed{
-		Title:       "📋 Task Information",
+		Title:       "📋 Task List",
 		Description: fmt.Sprintf("For: %s", util.GetUserGuildNickname(i.GuildID, userId)),
 		Color:       0x4A90E2, // Green
 		Timestamp:   time.Now().Format(time.RFC3339),

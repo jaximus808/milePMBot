@@ -1,0 +1,77 @@
+package milestones
+
+import (
+	"strings"
+	"time"
+
+	"github.com/bwmarrin/discordgo"
+	"github.com/jaximus808/milePMBot/internal/util"
+)
+
+func ListMilestones(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
+	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
+
+	if errorHandle != nil {
+		return errorHandle
+	}
+
+	if currentProject == nil {
+		return util.CreateHandleReport(false, "failed to get active project")
+	}
+
+	milestoneList, milestoneListError := util.DBGetMilestoneListDescending(currentProject.ID)
+
+	if milestoneListError != nil || milestoneList == nil {
+		return util.CreateHandleReport(false, "Error getting milestones on our end :(")
+	}
+
+	emeddedMessage := &discordgo.MessageEmbed{
+		Title:       "🧭 Milestone Map",
+		Description: "For: Current Project",
+		Color:       0x3498DB, // Green
+		Timestamp:   time.Now().Format(time.RFC3339),
+	}
+
+	milestoneMap := util.ParseMilestoneList(milestoneList, *currentProject.CurrentMID)
+
+	currentField := &discordgo.MessageEmbedField{
+		Name:   "🚀 Current",
+		Value:  milestoneMap.CurrentMilestone,
+		Inline: false,
+	}
+
+	upcomingField := &discordgo.MessageEmbedField{
+		Name:   "📋 Upcoming",
+		Inline: true,
+	}
+
+	previousField := &discordgo.MessageEmbedField{
+		Name:   "📨 Previous",
+		Inline: true,
+	}
+
+	if len(milestoneMap.Upcoming) > 0 {
+		upcomingField.Value = strings.Join(milestoneMap.Upcoming, "\n")
+	} else {
+		upcomingField.Value = "No Upcoming Milestones"
+	}
+
+	if len(milestoneMap.Previous) > 0 {
+		previousField.Value = strings.Join(milestoneMap.Previous, "\n")
+	} else {
+		previousField.Value = "No Previous Milestones"
+	}
+
+	emeddedMessage.Fields = []*discordgo.MessageEmbedField{
+		currentField,
+		upcomingField,
+		previousField,
+	}
+	return util.CreateHandleReportAndOutput(
+		true,
+		"Map Made!",
+		emeddedMessage,
+		msgInstance.ChannelID,
+	)
+
+}

@@ -79,6 +79,11 @@ func RegisterCommands(s *discordgo.Session, guildId string) {
 						},
 					},
 				},
+				{
+					Name:        "map",
+					Description: "create a milestone map",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+				},
 			},
 		}, {
 			Name:        "task",
