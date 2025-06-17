@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/jaximus808/milePMBot/internal/discord"
 	output "github.com/jaximus808/milePMBot/internal/ouput/discord"
 	"github.com/jaximus808/milePMBot/internal/util"
 )
@@ -28,17 +29,32 @@ func SettingProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 
 	switch setting {
 	case "output":
-		re := regexp.MustCompile(`<#([0-9])>`)
+		re := regexp.MustCompile(`<#!?(\d+)>`)
 		match := re.FindStringSubmatch(value)
 		if len(match) != 2 {
-			return util.CreateHandleReport(false, "You need to give a channel")
+			return util.CreateHandleReport(false, "❌ You need to give a valid channel")
 		}
 		outChannel := match[1]
 
 		outChannelId, errOut := strconv.Atoi(outChannel)
 		if errOut != nil {
-			util.CreateHandleReport(false, "expected output id")
+			util.CreateHandleReport(false, "❌ You need to give a valid channel")
 		}
+
+		//need a check to make sure the channel is within the cateogry
+
+		newChannel, channelErr := discord.DiscordSession.Channel(outChannel)
+
+		parentId, praseError := strconv.Atoi(newChannel.ParentID)
+
+		if channelErr != nil || praseError != nil {
+			return util.CreateHandleReport(false, "❌ You need to give a valid channel")
+		}
+
+		if parentId != *currentProject.PChannelID {
+			return util.CreateHandleReport(false, "❌ You need to give a channel within the same category")
+		}
+
 		updatedProject, errUpdate := util.DBUpdateProjectOutputChannel(currentProject.ID, outChannelId)
 
 		if errUpdate != nil || updatedProject == nil {
@@ -50,7 +66,7 @@ func SettingProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 			"✅ Output channel updated sucessfull!",
 			&discordgo.MessageEmbed{
 				Title:       "🔁 Project Updated",
-				Description: "Project Output Channel Has Been Updated to Here",
+				Description: "## Project Output Channel Has Been Updated to Here",
 				Color:       0x3498DB, // Orange
 				Timestamp:   time.Now().Format(time.RFC3339),
 			},
@@ -68,7 +84,7 @@ func SettingProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 			"✅ Project Description Updated!",
 			&discordgo.MessageEmbed{
 				Title:       "🔁 Project Updated",
-				Description: fmt.Sprintf("# Project Description to:\n%s", value),
+				Description: fmt.Sprintf("## Project Description to:\n%s", value),
 				Color:       0x3498DB, // Orange
 				Timestamp:   time.Now().Format(time.RFC3339),
 			},
@@ -86,7 +102,7 @@ func SettingProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 			"✅ Project Sprint Message Updated!",
 			&discordgo.MessageEmbed{
 				Title:       "🔁 Project Updated",
-				Description: fmt.Sprintf("# Project Description to:\n%s", value),
+				Description: fmt.Sprintf("## Project Description to:\n%s", value),
 				Color:       0x3498DB, // Orange
 				Timestamp:   time.Now().Format(time.RFC3339),
 			},
@@ -116,7 +132,7 @@ func SettingProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 			fmt.Sprintf("✅ Project %s", stringSpring),
 			&discordgo.MessageEmbed{
 				Title:       "🔁 Project Updated",
-				Description: fmt.Sprintf("# Project Sprints Enabled: %t", toggledSprint),
+				Description: fmt.Sprintf("## Project %s", stringSpring),
 				Color:       0x3498DB, // Orange
 				Timestamp:   time.Now().Format(time.RFC3339),
 			},
@@ -169,7 +185,7 @@ func SettingProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 			fmt.Sprintf("✅ Project %s", stringSpring),
 			&discordgo.MessageEmbed{
 				Title:       "🔁 Project Updated",
-				Description: fmt.Sprintf("# Project Sprints Enabled: %t", toggledSprint),
+				Description: fmt.Sprintf("## Project %s", stringSpring),
 				Color:       0x3498DB, // Orange
 				Timestamp:   time.Now().Format(time.RFC3339),
 			},

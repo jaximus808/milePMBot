@@ -450,6 +450,7 @@ func DBUpdateProjectPings(projectId int, enabled bool) (*Project, error) {
 	var newProject Project
 	updatedProject := ProjectUpdate{
 		SprintPing: &enabled,
+		LastPingAt: time.Now(),
 	}
 	res, _, err := supabaseutil.Client.From("Projects").Update(updatedProject, "representation", "").Eq("id", strconv.Itoa(projectId)).Single().Execute()
 	if err != nil {

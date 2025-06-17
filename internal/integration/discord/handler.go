@@ -20,7 +20,7 @@ func autocompleteHandler(sess *discordgo.Session, interaction *discordgo.Interac
 	switch cmd {
 	case "task":
 		handleTaskAutocomplete(sess, interaction)
-	case "setting":
+	case "project":
 		handleSettingAutocomplete(sess, interaction)
 	}
 }

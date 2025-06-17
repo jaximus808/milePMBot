@@ -86,6 +86,7 @@ type Project struct {
 	SprintMsg     *string   `json:"sprint_msg"`
 	SprintN       *int      `json:"sprint_n"`
 	SprintPing    *bool     `json:"sprint_ping"`
+	LastPingAt    time.Time `json:"last_ping_date"`
 }
 
 type ProjectInsert struct {
@@ -102,6 +103,7 @@ type ProjectInsert struct {
 	SprintMsg     *string    `json:"sprint_msg,omitempty"`
 	SprintN       *int       `json:"sprint_n,omitempty"`
 	SprintPing    *bool      `json:"sprint_ping,omitempty"`
+	LastPingAt    time.Time  `json:"last_ping_date,omitempty"`
 }
 
 type ProjectUpdate = ProjectInsert
