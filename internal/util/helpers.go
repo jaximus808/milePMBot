@@ -375,6 +375,95 @@ func DBUpdateProjectOutputChannel(projectId int, outputId int) (*Project, error)
 	return &newProject, nil
 }
 
+func DBUpdateProjectDescription(projectId int, desc string) (*Project, error) {
+	var newProject Project
+	updatedProject := ProjectUpdate{
+		Desc: &desc,
+	}
+	res, _, err := supabaseutil.Client.From("Projects").Update(updatedProject, "representation", "").Eq("id", strconv.Itoa(projectId)).Single().Execute()
+	if err != nil {
+		log.Printf("BROOO Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &newProject)
+	if err != nil {
+		log.Printf(" WTFFF Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	return &newProject, nil
+}
+
+func DBUpdateProjectSprintDesc(projectId int, desc string) (*Project, error) {
+	var newProject Project
+	updatedProject := ProjectUpdate{
+		SprintMsg: &desc,
+	}
+	res, _, err := supabaseutil.Client.From("Projects").Update(updatedProject, "representation", "").Eq("id", strconv.Itoa(projectId)).Single().Execute()
+	if err != nil {
+		log.Printf("BROOO Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &newProject)
+	if err != nil {
+		log.Printf(" WTFFF Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	return &newProject, nil
+}
+
+func DBUpdateProjectSprints(projectId int, enabled bool) (*Project, error) {
+	var newProject Project
+	updatedProject := ProjectUpdate{
+		SprintEnabled: &enabled,
+	}
+	res, _, err := supabaseutil.Client.From("Projects").Update(updatedProject, "representation", "").Eq("id", strconv.Itoa(projectId)).Single().Execute()
+	if err != nil {
+		log.Printf("BROOO Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &newProject)
+	if err != nil {
+		log.Printf(" WTFFF Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	return &newProject, nil
+}
+
+func DBUpdateProjectSprintDuration(projectId int, sprintDuration int) (*Project, error) {
+	var newProject Project
+	updatedProject := ProjectUpdate{
+		SprintN: &sprintDuration,
+	}
+	res, _, err := supabaseutil.Client.From("Projects").Update(updatedProject, "representation", "").Eq("id", strconv.Itoa(projectId)).Single().Execute()
+	if err != nil {
+		log.Printf("BROOO Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &newProject)
+	if err != nil {
+		log.Printf(" WTFFF Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	return &newProject, nil
+}
+func DBUpdateProjectPings(projectId int, enabled bool) (*Project, error) {
+	var newProject Project
+	updatedProject := ProjectUpdate{
+		SprintPing: &enabled,
+	}
+	res, _, err := supabaseutil.Client.From("Projects").Update(updatedProject, "representation", "").Eq("id", strconv.Itoa(projectId)).Single().Execute()
+	if err != nil {
+		log.Printf("BROOO Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &newProject)
+	if err != nil {
+		log.Printf(" WTFFF Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	return &newProject, nil
+}
+
 // Milestone commands
 
 func DBCreateMilestone(projectId int, msName string, msDeadline *time.Time, msDes string) (*Milestone, error) {

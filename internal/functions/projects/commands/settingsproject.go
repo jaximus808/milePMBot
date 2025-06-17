@@ -1,8 +1,10 @@
 package projects
 
 import (
+	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/bwmarrin/discordgo"
@@ -54,7 +56,125 @@ func SettingProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 			},
 			strconv.Itoa(*updatedProject.OutputChannel),
 		)
+	case "description":
+		updatedProject, errUpdate := util.DBUpdateProjectDescription(currentProject.ID, value)
 
+		if errUpdate != nil || updatedProject == nil {
+			return util.CreateHandleReport(false, output.FAILURE_SERVER)
+		}
+
+		return util.CreateHandleReportAndOutput(
+			true,
+			"✅ Project Description Updated!",
+			&discordgo.MessageEmbed{
+				Title:       "🔁 Project Updated",
+				Description: fmt.Sprintf("# Project Description to:\n%s", value),
+				Color:       0x3498DB, // Orange
+				Timestamp:   time.Now().Format(time.RFC3339),
+			},
+			strconv.Itoa(*updatedProject.OutputChannel),
+		)
+	case "message":
+		updatedProject, errUpdate := util.DBUpdateProjectSprintDesc(currentProject.ID, value)
+
+		if errUpdate != nil || updatedProject == nil {
+			return util.CreateHandleReport(false, output.FAILURE_SERVER)
+		}
+
+		return util.CreateHandleReportAndOutput(
+			true,
+			"✅ Project Sprint Message Updated!",
+			&discordgo.MessageEmbed{
+				Title:       "🔁 Project Updated",
+				Description: fmt.Sprintf("# Project Description to:\n%s", value),
+				Color:       0x3498DB, // Orange
+				Timestamp:   time.Now().Format(time.RFC3339),
+			},
+			strconv.Itoa(*updatedProject.OutputChannel),
+		)
+	case "sprints":
+		value = strings.ToLower(value)
+		var toggledSprint bool
+		var stringSpring string
+		if value == "y" {
+			toggledSprint = true
+			stringSpring = "Sprints Enabled!"
+		} else if value == "n" {
+			toggledSprint = false
+			stringSpring = "Sprints Disabled"
+		} else {
+			return util.CreateHandleReport(false, "❌ expected Y or N")
+		}
+		updatedProject, errUpdate := util.DBUpdateProjectSprints(currentProject.ID, toggledSprint)
+
+		if errUpdate != nil || updatedProject == nil {
+			return util.CreateHandleReport(false, output.FAILURE_SERVER)
+		}
+
+		return util.CreateHandleReportAndOutput(
+			true,
+			fmt.Sprintf("✅ Project %s", stringSpring),
+			&discordgo.MessageEmbed{
+				Title:       "🔁 Project Updated",
+				Description: fmt.Sprintf("# Project Sprints Enabled: %t", toggledSprint),
+				Color:       0x3498DB, // Orange
+				Timestamp:   time.Now().Format(time.RFC3339),
+			},
+			strconv.Itoa(*updatedProject.OutputChannel),
+		)
+	case "duration":
+		sprintDuration, sprintDurationError := strconv.Atoi(value)
+		if sprintDurationError != nil {
+			return util.CreateHandleReport(false, "❌ Expected a Number for the Sprint Duration. Ex: 3 -> 3 weeks")
+		}
+
+		updatedProject, errUpdate := util.DBUpdateProjectSprintDuration(currentProject.ID, sprintDuration)
+
+		if errUpdate != nil || updatedProject == nil {
+			return util.CreateHandleReport(false, output.FAILURE_SERVER)
+		}
+
+		return util.CreateHandleReportAndOutput(
+			true,
+			"✅ Project Sprint Duration Updated",
+			&discordgo.MessageEmbed{
+				Title:       "🔁 Project Updated",
+				Description: fmt.Sprintf("# Project Sprint Duration Updated To: %d", sprintDuration),
+				Color:       0x3498DB, // Orange
+				Timestamp:   time.Now().Format(time.RFC3339),
+			},
+			strconv.Itoa(*updatedProject.OutputChannel),
+		)
+	case "pings":
+		value = strings.ToLower(value)
+		var toggledSprint bool
+		var stringSpring string
+		if value == "y" {
+			toggledSprint = true
+			stringSpring = "Pings Enabled!"
+		} else if value == "n" {
+			toggledSprint = false
+			stringSpring = "Pings Disabled"
+		} else {
+			return util.CreateHandleReport(false, "❌ expected Y or N")
+		}
+		updatedProject, errUpdate := util.DBUpdateProjectPings(currentProject.ID, toggledSprint)
+
+		if errUpdate != nil || updatedProject == nil {
+			return util.CreateHandleReport(false, output.FAILURE_SERVER)
+		}
+
+		return util.CreateHandleReportAndOutput(
+			true,
+			fmt.Sprintf("✅ Project %s", stringSpring),
+			&discordgo.MessageEmbed{
+				Title:       "🔁 Project Updated",
+				Description: fmt.Sprintf("# Project Sprints Enabled: %t", toggledSprint),
+				Color:       0x3498DB, // Orange
+				Timestamp:   time.Now().Format(time.RFC3339),
+			},
+			strconv.Itoa(*updatedProject.OutputChannel),
+		)
 	}
 
 	return util.CreateHandleReport(false, "❌ Unexpected Option")
