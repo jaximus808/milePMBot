@@ -8,6 +8,7 @@ import (
 
 	"github.com/jaximus808/milePMBot/internal/discord"
 	integration "github.com/jaximus808/milePMBot/internal/integration/discord"
+	"github.com/jaximus808/milePMBot/internal/jobs"
 	"github.com/jaximus808/milePMBot/internal/supabaseutil"
 	"github.com/joho/godotenv"
 )
@@ -41,7 +42,23 @@ func main() {
 	integration.ClearCommands(discord.DiscordSession, "738509536520044575")
 	integration.RegisterCommands(discord.DiscordSession, "738509536520044575")
 
-	log.Println("Bot Online")
+	// start the cron job
+	s, err := jobs.StartSprintUpdateJob()
+
+	if err != nil {
+		log.Println(err.Error())
+		return
+	}
+
+	defer s.Shutdown()
+
+	s.Start()
+
+	for _, job := range s.Jobs() {
+		log.Printf("running job %s", job.ID().String())
+	}
+
+	log.Println("Bot and Job Online")
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 	<-stop

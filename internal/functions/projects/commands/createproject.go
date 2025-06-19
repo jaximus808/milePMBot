@@ -61,7 +61,7 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
-	userRole, roleError := util.DBCreateRole(project.ID, userId, int(util.LeadRole))
+	userRole, roleError := util.DBCreateRole(project.ID, userId, int(util.AdminRole))
 	if roleError != nil || userRole == nil {
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}

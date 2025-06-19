@@ -13,7 +13,7 @@ func RegisterCommands(s *discordgo.Session, guildId string) {
 			Description: "Manage a project",
 			Options: []*discordgo.ApplicationCommandOption{
 				{
-					Name:        "create",
+					Name:        "start",
 					Description: "create a project",
 					Type:        discordgo.ApplicationCommandOptionSubCommand,
 					Options: []*discordgo.ApplicationCommandOption{
@@ -56,6 +56,33 @@ func RegisterCommands(s *discordgo.Session, guildId string) {
 						},
 					},
 				},
+				{
+					Name:        "role",
+					Description: "update a project roles (ADMIN ONLY)",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:         discordgo.ApplicationCommandOptionString,
+							Name:         "op",
+							Description:  "add a role/remove a role",
+							Required:     true,
+							Autocomplete: true,
+						},
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "user",
+							Description: "user",
+							Required:    true,
+						},
+						{
+							Type:         discordgo.ApplicationCommandOptionString,
+							Name:         "role",
+							Description:  "role: Required for adding a role",
+							Required:     false,
+							Autocomplete: true,
+						},
+					},
+				},
 			},
 		},
 		{
@@ -94,7 +121,7 @@ func RegisterCommands(s *discordgo.Session, guildId string) {
 						{
 							Type:        discordgo.ApplicationCommandOptionString,
 							Name:        "direction",
-							Description: "the new tasks's name",
+							Description: "the direction to move the active milestone",
 							Required:    true,
 						},
 					},
@@ -105,7 +132,8 @@ func RegisterCommands(s *discordgo.Session, guildId string) {
 					Type:        discordgo.ApplicationCommandOptionSubCommand,
 				},
 			},
-		}, {
+		},
+		{
 			Name:        "task",
 			Description: "Manage a project's task",
 			//make a better name for this shit
@@ -135,7 +163,7 @@ func RegisterCommands(s *discordgo.Session, guildId string) {
 					Options: []*discordgo.ApplicationCommandOption{
 						{
 							Type:        discordgo.ApplicationCommandOptionString,
-							Name:        "assigned",
+							Name:        "user",
 							Description: "the assigned user",
 							Required:    true,
 						},
@@ -232,6 +260,18 @@ func RegisterCommands(s *discordgo.Session, guildId string) {
 							Description: "user to list tasks about",
 						},
 					},
+				},
+			},
+		},
+		{
+			Name:        "help",
+			Description: "manual for MilestonePM Bot",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:         "command",
+					Description:  "create a milestone",
+					Type:         discordgo.ApplicationCommandOptionString,
+					Autocomplete: true,
 				},
 			},
 		},

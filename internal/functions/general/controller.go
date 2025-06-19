@@ -1,13 +1,11 @@
-package projects
+package general
 
 import (
 	"github.com/bwmarrin/discordgo"
-	projects "github.com/jaximus808/milePMBot/internal/functions/projects/commands"
+	general "github.com/jaximus808/milePMBot/internal/functions/general/commands"
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
 var CommandMap = map[string](func(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport){
-	"start": projects.CreateProject,
-	"set":   projects.SettingProject,
-	"role":  projects.AddRole,
+	"help": general.HelpMsg,
 }

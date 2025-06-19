@@ -106,6 +106,79 @@ func ParseMilestoneList(milestones *[]Milestone, currentMid int) *MilestoneRepor
 
 }
 
+func ParseTaskListWeeklyWithPing(tasks *[]Task) *TaskReport {
+
+	taskReport := &TaskReport{}
+
+	for _, task := range *tasks {
+
+		if *task.Completed { // task is marked compelete by the user and ready for review
+
+			taskReport.InReview = append(
+				taskReport.InReview,
+				fmt.Sprintf("> 📌 **Task Name:** %s\n> **Task Ref:** %s\n> Completed By: <%d>\n> Waiting for Review By: <%d>",
+					*task.TaskName,
+					*task.TaskRef,
+					*task.AssignedID,
+					*task.AssignerID,
+				),
+			)
+		} else if task.AssignedID != nil { // task is assigned, but clear not done by the previous checks
+
+			taskReport.InProgress = append(
+				taskReport.InProgress,
+				fmt.Sprintf("> 📌 **Task Name:** %s\n> **Task Ref:** %s\n> Assigned To: <%d>\n> Assigned By: <%d>",
+					*task.TaskName,
+					*task.TaskRef,
+					*task.AssignedID,
+					*task.AssignerID,
+				),
+			)
+		}
+	}
+	return taskReport
+
+}
+func ParseTaskListWeekly(tasks *[]Task, guildId string) *TaskReport {
+
+	taskReport := &TaskReport{}
+
+	for _, task := range *tasks {
+
+		if *task.Completed { // task is marked compelete by the user and ready for review
+
+			assignedMemberName := GetUserGuildNickname(guildId, strconv.Itoa(*task.AssignedID))
+			assignerMemberName := GetUserGuildNickname(guildId, strconv.Itoa(*task.AssignerID))
+
+			taskReport.InReview = append(
+				taskReport.InReview,
+				fmt.Sprintf("> 📌 **Task Name:** %s\n> **Task Ref:** %s\n> Completed By: %s\n> Waiting for Review: %s",
+					*task.TaskName,
+					*task.TaskRef,
+					assignedMemberName,
+					assignerMemberName,
+				),
+			)
+		} else if task.AssignedID != nil { // task is assigned, but clear not done by the previous checks
+
+			assignedMemberName := GetUserGuildNickname(guildId, strconv.Itoa(*task.AssignedID))
+			assignerMemberName := GetUserGuildNickname(guildId, strconv.Itoa(*task.AssignerID))
+
+			taskReport.InProgress = append(
+				taskReport.InProgress,
+				fmt.Sprintf("> 📌 **Task Name:** %s\n> **Task Ref:** %s\n> Assigned To: %s\n> Assigned By: %s",
+					*task.TaskName,
+					*task.TaskRef,
+					assignedMemberName,
+					assignerMemberName,
+				),
+			)
+		}
+	}
+	return taskReport
+
+}
+
 // for time must make some service to convert to the requested timezone, or the timezone the bot is made
 func ParseTaskList(tasks *[]Task, guildId string) *TaskReport {
 
@@ -446,6 +519,26 @@ func DBUpdateProjectSprintDuration(projectId int, sprintDuration int) (*Project,
 	}
 	return &newProject, nil
 }
+
+func DBUpdateResetSprintDuration(projectId int) (*Project, error) {
+	var newProject Project
+	// push back a day for cushion
+	updatedProject := ProjectUpdate{
+		LastPingAt: time.Now().Add(-24 * time.Hour),
+	}
+	res, _, err := supabaseutil.Client.From("Projects").Update(updatedProject, "representation", "").Eq("id", strconv.Itoa(projectId)).Single().Execute()
+	if err != nil {
+		log.Printf("BROOO Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &newProject)
+	if err != nil {
+		log.Printf(" WTFFF Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	return &newProject, nil
+}
+
 func DBUpdateProjectPings(projectId int, enabled bool) (*Project, error) {
 	var newProject Project
 	updatedProject := ProjectUpdate{
@@ -463,6 +556,21 @@ func DBUpdateProjectPings(projectId int, enabled bool) (*Project, error) {
 		return nil, err
 	}
 	return &newProject, nil
+}
+
+func DBGetAllPingProjects() (*([]Project), error) {
+	var projects []Project
+	res, _, err := supabaseutil.Client.From("Projects").Select("*,ActiveProjects!inner(project_id)", "", false).Eq("sprint_enabled", "TRUE").Execute()
+	if err != nil {
+		log.Printf("BROOO Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &projects)
+	if err != nil {
+		log.Printf(" WTFFF Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	return &projects, nil
 }
 
 // Milestone commands
@@ -628,6 +736,15 @@ func DBGetRole(projectId int, userId string) (*Role, error) {
 
 	return &selectedRole, nil
 }
+func DBDeleteRole(roleId int) error {
+	_, _, err := supabaseutil.Client.From("Roles").Delete("*", "").Eq("id", strconv.Itoa(roleId)).Execute()
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return err
+	}
+
+	return nil
+}
 
 /*
 	Task commands
@@ -760,6 +877,22 @@ func DBUpdateTaskRecentProgress(taskId int, completed bool) (*Task, error) {
 		return nil, err
 	}
 	return &newTask, nil
+}
+
+func DBGetInProgressAndCompetedTask(projectId int, milestoneId int) (*[]Task, error) {
+	var selectedTasks []Task
+	res, _, err := supabaseutil.Client.From("Tasks").Select("*", "", false).Eq("project_id", strconv.Itoa(projectId)).Eq("milestone_id", strconv.Itoa(milestoneId)).Not("assigned_id", "is", "NULL").Eq("done", "FALSE").Execute()
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+	err = json.Unmarshal(res, &selectedTasks)
+	if err != nil {
+		log.Printf("Error unmarshaling response: %v", err)
+		return nil, err
+	}
+
+	return &selectedTasks, nil
 }
 
 // used for approve, lowky this shit is so fucking bad

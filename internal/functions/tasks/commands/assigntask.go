@@ -13,7 +13,7 @@ import (
 
 func AssignTask(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
 
-	assignedID := util.GetOptionValue(args.Options, "assigned")
+	assignedID := util.GetOptionValue(args.Options, "user")
 
 	taskRef := util.GetOptionValue(args.Options, "taskref")
 	taskExpectations := util.GetOptionValue(args.Options, "expectation")

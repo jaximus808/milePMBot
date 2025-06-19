@@ -23,6 +23,26 @@ func ApproveTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appli
 		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
 	}
 
+	currentRole, currentRoleError := util.DBGetRole(currentProject.ID, msgInstance.Member.User.ID)
+
+	if currentRoleError != nil || currentRole == nil {
+		return util.CreateHandleReport(false, "❌ You lack valid permissions to approve tasks")
+	}
+
+	currentTask, currentTaskError := util.DBGetTask(currentProject.ID, taskRef)
+
+	if currentTaskError != nil || currentTask == nil {
+		return util.CreateHandleReport(false, fmt.Sprintf("❌ Could not find a task with the given task ref: %s", taskRef))
+	}
+
+	if currentTask.AssignedID == nil {
+		return util.CreateHandleReport(false, "❌ This project has not been assigned yet")
+	}
+
+	if currentRole.RoleLevel == int(util.LeadRole) && strconv.Itoa(*currentTask.AssignedID) != msgInstance.Member.User.ID {
+		return util.CreateHandleReport(false, "❌ As a lead you can only apporve tasks you've assigned!")
+	}
+
 	currentTime := time.Now()
 
 	updatedTask, errorUpdatedTask := util.DBTaskMarkComplete(currentProject.ID, taskRef, &currentTime)

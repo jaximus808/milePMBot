@@ -17,13 +17,10 @@ func SettingProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 
 	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
 
-	if errorHandle != nil {
-		return errorHandle
-	}
-
-	if currentProject == nil {
+	if errorHandle != nil || currentProject == nil {
 		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
 	}
+
 	setting := util.GetOptionValue(args.Options, "setting")
 	value := util.GetOptionValue(args.Options, "value")
 

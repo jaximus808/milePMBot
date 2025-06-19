@@ -5,6 +5,7 @@ import (
 
 	"github.com/bwmarrin/discordgo"
 	"github.com/jaximus808/milePMBot/internal/discord"
+	"github.com/jaximus808/milePMBot/internal/functions/general"
 	"github.com/jaximus808/milePMBot/internal/functions/milestones"
 	"github.com/jaximus808/milePMBot/internal/functions/projects"
 	"github.com/jaximus808/milePMBot/internal/functions/tasks"
@@ -22,16 +23,47 @@ func autocompleteHandler(sess *discordgo.Session, interaction *discordgo.Interac
 		handleTaskAutocomplete(sess, interaction)
 	case "project":
 		handleSettingAutocomplete(sess, interaction)
+	case "help":
+		handleHelpAutocomplete(sess, interaction)
 	}
 }
 
+func handleHelpAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	data := i.ApplicationCommandData()
+	// Find which option is focused
+	// I need to implement a cache here to speed up performance
+	for _, opt := range data.Options {
+		if opt.Focused && opt.Name == "command" {
+			_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionApplicationCommandAutocompleteResult,
+				Data: &discordgo.InteractionResponseData{
+					Choices: []*discordgo.ApplicationCommandOptionChoice{
+						{
+							Name:  "Project Commands",
+							Value: "project",
+						},
+						{
+							Name:  "Milestone Commands",
+							Value: "milestone",
+						},
+						{
+							Name:  "Task Commands",
+							Value: "task",
+						},
+					},
+				},
+			})
+			return
+		}
+
+	}
+}
 func handleSettingAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
 	// Find which option is focused
 	// I need to implement a cache here to speed up performance
 	for _, opt := range data.Options[0].Options {
 		if opt.Focused && opt.Name == "setting" {
-
 			_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionApplicationCommandAutocompleteResult,
 				Data: &discordgo.InteractionResponseData{
@@ -59,6 +91,42 @@ func handleSettingAutocomplete(s *discordgo.Session, i *discordgo.InteractionCre
 						{
 							Name:  "Toggle Weekly Pings [y/n]",
 							Value: "pings",
+						},
+					},
+				},
+			})
+			return
+		}
+		if opt.Focused && opt.Name == "op" {
+			_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionApplicationCommandAutocompleteResult,
+				Data: &discordgo.InteractionResponseData{
+					Choices: []*discordgo.ApplicationCommandOptionChoice{
+						{
+							Name:  "Assign a Role",
+							Value: "add",
+						},
+						{
+							Name:  "Remove a Role",
+							Value: "remove",
+						},
+					},
+				},
+			})
+			return
+		}
+		if opt.Focused && opt.Name == "role" {
+			_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionApplicationCommandAutocompleteResult,
+				Data: &discordgo.InteractionResponseData{
+					Choices: []*discordgo.ApplicationCommandOptionChoice{
+						{
+							Name:  "Lead: Ability to assign tasks to members and leads",
+							Value: "lead",
+						},
+						{
+							Name:  "Admin: Full power!!!!",
+							Value: "admin",
 						},
 					},
 				},
@@ -144,27 +212,52 @@ func commandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	data := i.ApplicationCommandData()
 
-	baseCommand := data.Name
-	subCommand := data.Options[0]
-
 	var commandFunction func(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport
 	var exists bool
 
-	switch baseCommand {
-	case "project":
-		commandFunction, exists = projects.CommandMap[subCommand.Name]
-	case "milestone":
-		commandFunction, exists = milestones.CommandMap[subCommand.Name]
-	case "task":
-		commandFunction, exists = tasks.CommandMap[subCommand.Name]
-	default:
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "Didn't recongnize your command: " + baseCommand,
-			},
-		})
-		return
+	baseCommand := data.Name
+	var subCommand *discordgo.ApplicationCommandInteractionDataOption
+
+	if len(data.Options) == 0 {
+		commandFunction, exists = general.CommandMap[baseCommand]
+		if !exists {
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "Didn't recongnize your command: " + baseCommand,
+				},
+			})
+			return
+		}
+	} else {
+		subCommand = data.Options[0]
+
+		switch baseCommand {
+		case "project":
+			commandFunction, exists = projects.CommandMap[subCommand.Name]
+		case "milestone":
+			commandFunction, exists = milestones.CommandMap[subCommand.Name]
+		case "task":
+			commandFunction, exists = tasks.CommandMap[subCommand.Name]
+		case "help":
+			commandFunction, exists = general.CommandMap[baseCommand]
+			// a hacky workaround to make help work without a subcommand
+			subCommand = &discordgo.ApplicationCommandInteractionDataOption{
+				Options: []*discordgo.ApplicationCommandInteractionDataOption{{
+					Name:  "command",
+					Type:  discordgo.ApplicationCommandOptionString,
+					Value: subCommand.Value,
+				}},
+			}
+		default:
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Content: "Didn't recongnize your command: " + baseCommand,
+				},
+			})
+			return
+		}
 	}
 
 	if !exists {
