@@ -8,9 +8,52 @@ This Discord bot helps manage projects, milestones, and tasks within your Discor
 
 MilestonePM works by mapping project to discord server categories and its channels. This means that any channel within an active project's category can run commands to interact with that project
 
-![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Visual Category Pic")
+![alt text](https://github.com/jaximus808/milePMBot/blob/main/assets/milestonePMReference.png "Visual Category Pic")
 
 
+Within a project, there are 2 main terms
+
+### Milestones
+
+These tie to big "strides" within a project, and are used to track the general direction of a project. 
+Each project will have an active milestone, meaning all tasks and work will be tied to that milesstone. Commands can be used to move between milestones directional based on its due date.
+
+In Jira Terms these are essentially Epics
+
+### Tasks
+
+Tasks are the specific work that a member is doing. 
+All tasks are tied to a milestone and represeant the specific work that is being done to complete the active milestone
+Taks go through 4 phases
+
+1. Creation - Tasks are created with its description and expectation, but are not assigned yet (Backlog)
+2. In Progress - When a task is assigned it is deemed in progress, the assigned can update the project with progress reports
+3. In Review - When the assigned user marks a project as complete, the bot will notify the assigner to review the work
+4. Done - Once a project is approved by the assigner, the task is deemed as complete and is closed 
+
+In Jira terms these are essentially stories
+
+## Permission Levels
+
+Following permissions are outlined below in order of most -> least privilege. 
+
+- **OWNER**: Can end, resume, and move projects
+- **ADMIN**: Can manage milestones, approve/reject any tasks
+- **LEADS**: Can create and assign tasks, review tasks they assigned
+
+**DISCORD SERVER ADMIN**: This is not really a milestonePM role, but a discord permission level required to start project within a server
+
+Any commands that don't have a required permissions outlined is able to be used by anyone
+
+A + indicates that role or higher in privilege can access that command
+
+### Usuage 
+
+The workflow to using MilestonePM is through discord-slash commands. This allows users to interact with a project, update progress, and track work. 
+
+In upcoming updates, a web UI view will be avilable to allow a kaban style board for tasks. This webpage will also be the home center for other general usuages for the app. More info coming soon
+
+The following documentation convers specifics for using the bot. You may also use /help command to get a concise version of these documents
 
 ## Command Documentation Format
 
@@ -40,7 +83,7 @@ Gives more detailed information for a specific sub-command
 
 The `/project` command handles project settings and control with different permission levels.
 
-### Project Control (REGISTERED USER)
+### Project Control (DISCORD SERVER ADMIN)
 
 #### `/project start [msname] [msdate] [msdesc]`
 - Starts a project in the given Discord channel category
@@ -49,7 +92,7 @@ The `/project` command handles project settings and control with different permi
 - Date format: MM/DD/YYYY
 - Your account/role must be authorized to start a project
 
-### Project Control (OWNER+)
+### Project Control (OWNER)
 
 #### `/project end [projectref]`
 - Ends a project and removes it from active projects
@@ -64,7 +107,7 @@ The `/project` command handles project settings and control with different permi
 - All tasks, milestones, and roles are maintained during the move
 - Must be the owner of the project
 
-### Project Settings (ADMIN++)
+### Project Settings (OWNER)
 
 #### `/project set [setting] [value]`
 Updates project settings. Available settings include:
@@ -75,7 +118,7 @@ Updates project settings. Available settings include:
 - Sprint length
 - Toggle sprint pings
 
-### Project Roles (ADMIN ONLY)
+### Project Roles (ADMIN+)
 
 #### `/project role [op] [user] [role]`
 Manages user roles within the project
@@ -165,10 +208,3 @@ Lists tasks assigned to a specific user, showing tasks that are:
 - In review
 - Complete
 
-## Permission Levels
-
-- **REGISTERED USER**: Can start projects
-- **LEADS+**: Can create and assign tasks, review tasks they assigned
-- **ADMIN+**: Can manage milestones, approve/reject any tasks
-- **ADMIN++**: Can modify project settings
-- **OWNER+**: Can end, resume, and move projects
