@@ -10,4 +10,5 @@ var CommandMap = map[string](func(msgInstance *discordgo.InteractionCreate, args
 	"create": milestones.CreateMilestone,
 	"move":   milestones.MoveMilestone,
 	"map":    milestones.ListMilestones,
+	"delete": milestones.DeleteMilestone,
 }

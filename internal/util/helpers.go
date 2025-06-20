@@ -666,6 +666,24 @@ func DBCreateMilestone(projectId int, msName string, msDeadline *time.Time, msDe
 	return &selectedMilestone, nil
 }
 
+func DBUpdateMilestoneRef(milestoneId int, projectRef string) (*Milestone, error) {
+	var selectedMilestone Milestone
+	updatedMilestone := MilestoneInsert{
+		MilestoneRef: ptrString(fmt.Sprintf("%s/milestone%d", projectRef, milestoneId)),
+	}
+	res, _, err := supabaseutil.Client.From("Milestones").Update(updatedMilestone, "representation", "").Eq("id", strconv.Itoa(milestoneId)).Single().Execute()
+	if err != nil {
+
+		return nil, err
+	}
+	err = json.Unmarshal(res, &selectedMilestone)
+	if err != nil {
+
+		return nil, err
+	}
+	return &selectedMilestone, nil
+}
+
 func DBGetMilestoneWithId(milestoneID int) (*Milestone, error) {
 	var selectedMilestone Milestone
 	res, _, err := supabaseutil.Client.From("Milestones").Select("*", "", false).Eq("id", strconv.Itoa(milestoneID)).Single().Execute()
@@ -681,6 +699,24 @@ func DBGetMilestoneWithId(milestoneID int) (*Milestone, error) {
 	return &selectedMilestone, nil
 }
 
+func DBGetMilestoneWithRef(milestoneRef string, projectId int) (*Milestone, error) {
+	var selectedMilestone Milestone
+	res, _, err := supabaseutil.Client.From("Milestones").Select("*", "", false).Eq("milestone_ref", milestoneRef).Eq("project_id", strconv.Itoa(projectId)).Single().Execute()
+	if err != nil {
+
+		return nil, err
+	}
+	err = json.Unmarshal(res, &selectedMilestone)
+	if err != nil {
+
+		return nil, err
+	}
+	return &selectedMilestone, nil
+}
+func DBDeleteMilestone(milestoneId int) error {
+	_, _, err := supabaseutil.Client.From("Milestones").Delete("*", "").Eq("id", strconv.Itoa(milestoneId)).Execute()
+	return err
+}
 func DBGetNextMilestone(projectId int, curMilstone *Milestone) (*Milestone, error) {
 	var nextMilestone Milestone
 	orderOptions := &postgrest.DefaultOrderOpts

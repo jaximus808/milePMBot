@@ -13,4 +13,5 @@ var CommandMap = map[string](func(msgInstance *discordgo.InteractionCreate, args
 	"move":   projects.MoveProject,
 	"end":    projects.EndProject,
 	"resume": projects.ResumeProject,
+	"info":   projects.ProjectInfo,
 }

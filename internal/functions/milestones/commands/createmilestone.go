@@ -21,10 +21,20 @@ func CreateMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.A
 	if currentProject == nil {
 		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
 	}
+	userRole, userRoleError := util.DBGetRole(currentProject.ID, msgInstance.Member.User.ID)
+
+	if userRoleError != nil || userRole == nil {
+		return util.CreateHandleReport(false, "❌ You don't have the valid permission for this command")
+	}
+
+	if userRole.RoleLevel < int(util.AdminRole) {
+		return util.CreateHandleReport(false, "❌ You don't have the valid permission for this command")
+	}
 
 	msName := util.GetOptionValue(args.Options, "msname")
 	msDate, dateError := time.Parse("01/02/2006", util.GetOptionValue(args.Options, "msdate"))
 	msDesc := util.GetOptionValue(args.Options, "desc")
+
 	if dateError != nil {
 		return util.CreateHandleReport(false, output.FAIL_INCORRECT_DATE)
 	}
@@ -41,14 +51,19 @@ func CreateMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.A
 	if msError != nil || milestone == nil {
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
-
+	// create Ref
+	milestoneRef, refError := util.DBUpdateMilestoneRef(milestone.ID, *currentProject.ProjectRef)
+	if refError != nil || milestoneRef == nil {
+		return util.CreateHandleReport(false, output.FAILURE_SERVER)
+	}
 	return util.CreateHandleReportAndOutput(true,
-		"successfully created milestone with id: "+strconv.Itoa(milestone.ID), &discordgo.MessageEmbed{
+		"successfully created milestone with milestoneref : "+*milestoneRef.MilestoneRef, &discordgo.MessageEmbed{
 			Title:       "🪜 New Milestone Created",
 			Description: fmt.Sprintf("A new milestone **%s** has been added to the project!", *milestone.DisplayName),
 			Color:       0x5865F2, // Discord blurple
 			Fields: []*discordgo.MessageEmbedField{
 				{Name: "Milestone Name", Value: msName, Inline: false},
+				{Name: "Milestone Ref", Value: *milestoneRef.MilestoneRef, Inline: false},
 				{Name: "Due Date", Value: msDate.Format("January 2, 2006"), Inline: false}, // if available
 			},
 			Timestamp: time.Now().Format(time.RFC3339),

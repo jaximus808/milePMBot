@@ -21,7 +21,15 @@ func MoveMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 	if currentProject == nil {
 		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
 	}
+	userRole, userRoleError := util.DBGetRole(currentProject.ID, msgInstance.Member.User.ID)
 
+	if userRoleError != nil || userRole == nil {
+		return util.CreateHandleReport(false, "❌ You don't have the valid permission for this command")
+	}
+
+	if userRole.RoleLevel < int(util.AdminRole) {
+		return util.CreateHandleReport(false, "❌ You don't have the valid permission for this command")
+	}
 	currentMilestone, errorCurrentMilestone := util.DBGetMilestoneWithId(*currentProject.CurrentMID)
 	if errorCurrentMilestone != nil {
 		return util.CreateHandleReport(false, errorCurrentMilestone.Error())

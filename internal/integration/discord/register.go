@@ -115,6 +115,11 @@ func RegisterCommands(s *discordgo.Session, guildId string) {
 						},
 					},
 				},
+				{
+					Name:        "info",
+					Description: "Get info on a project",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+				},
 			},
 		},
 		{
@@ -154,6 +159,18 @@ func RegisterCommands(s *discordgo.Session, guildId string) {
 							Type:        discordgo.ApplicationCommandOptionString,
 							Name:        "direction",
 							Description: "the direction to move the active milestone",
+							Required:    true,
+						},
+					},
+				}, {
+					Name:        "delete",
+					Description: "delete a milestone",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "msref",
+							Description: "The milestone's ref",
 							Required:    true,
 						},
 					},

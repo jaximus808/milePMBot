@@ -1,5 +1,7 @@
 # MilestonePM Bot
 
+![alt text](https://github.com/jaximus808/milePMBot/blob/main/assets/MilestonePM.png "Random Logo LOL")
+
 Thanks for checking out the MilestonePM bot! 😊
 
 This Discord bot helps manage projects, milestones, and tasks within your Discord server through text-commands. It provides a comprehensive project management system with role-based permissions and milestone tracking. 
@@ -148,7 +150,7 @@ The `/milestone` command handles creation and movement of milestones for the cur
 - Movement is determined by due date order
 - Example: If current milestone is due 06/20/2025 and next is 07/25/2025, `/milestone move direction:next` moves to the 07/25/2025 milestone
 
-#### `/milestone delete [taskref]` (WIP)
+#### `/milestone delete [taskref]`
 - Removes the milestone and all associated tasks
 - Requires confirmation message
 - **This is permanent and cannot be undone!**
@@ -210,6 +212,28 @@ Lists tasks assigned to a specific user, showing tasks that are:
 - In review
 - Complete
 
+## Current Planned Updates
+
+### CRITICAL
+
+- A Web version to allow a kaban style UI to visualize projects
+- Deploying code onto VPS server for hosting, with CI/CD
+- More verbose and cleaner discord messages, info (such as stats), and just code in general
+- Writing actual tests
+
+### Important
+
+- Sharding
+- More bots to other platforms, such as slack
+
 ## Contributing
 
-Contributions are welcome! Due to how new the project is no active proccedure is made to support contributions, but pleae feel free to open any issues for this project.
+Contributions are welcome! Due to how new the project is no active proccedure is made to support contributions, but pleae feel free to open any issues for desired features.
+
+## Using the Bot
+
+- This bot will soon be avialable for usuage with an invite link, as I will set up hosting to have the bot online 24/7
+- I plan to make a free tier, and then a paid tier for more features and support
+- If you wish to use the bot early or self host, feel free to clone this repo. However you will need to use your supabase database, or feel free to rewrite the helper methods to use your own database model. 
+
+
