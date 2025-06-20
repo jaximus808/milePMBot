@@ -22,8 +22,8 @@ In Jira Terms these are essentially Epics
 
 ### Tasks
 
-Tasks are the specific work that a member is doing. 
-All tasks are tied to a milestone and represeant the specific work that is being done to complete the active milestone
+Tasks are the specific work that a member is doing towards completing an active milestone
+
 Taks go through 4 phases
 
 1. Creation - Tasks are created with its description and expectation, but are not assigned yet (Backlog)
