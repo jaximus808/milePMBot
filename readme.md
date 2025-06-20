@@ -1,425 +1,174 @@
-# MilePM Bot (Mile Project Management)
+# MilestonePM Bot
 
-This project aims to allow for easier tracking of a project through a discord bot
+Thanks for using the MilestonePM bot! 😊
 
-Instead of slowly clicking and dragging tickets, just type commands and spin them up!
+This Discord bot helps manage projects, milestones, and tasks within your Discord server. It provides a comprehensive project management system with role-based permissions and milestone tracking.
 
-Much faster :)
+## Concepts and Usuage
 
-# Some Terms and concepts
+MilestonePM works by mapping project to discord server categories and its channels. This means that any channel within an active project's category can run commands to interact with that project
 
-## Projects
+![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Visual Category Pic")
 
-Projects contain milestones that encompases the start to end of a project. The project also contains all data related to tasks, milestones, settings etc. 
 
-## Milestones
 
-Milestones are big top level goals within a project, each project will be on a certain milestone. 
-Every task created and interacted on will be assigned to the project's current milestone. Admins dictate which milestone a project is on. 
+## Command Documentation Format
 
-## Tasks
+**Arguments**: `[argname]` - Command arguments where the brackets indicate to put a value and `argname` is the name of the argument you are setting. Format: `argname:value`
 
-Tasks are assigned to users and are given a due date, along with a description. 
+**Example**: `/help [cmd]` - The help command expects an argument "cmd" with the command name  
+Valid usage: `/help cmd:project` - Gives more info about project commands
 
-When a person finishes a task its then sent for review by a upper role, admins dont need thier work review when finished
+## Autocomplete
 
-Tasks are tied to milestones, and are tracked within said milestone
+- Please use autocomplete! This will give you the available options for a command and speed up writing commands
+- We'll continue working to add more autocomplete in the future
 
-## Sprints
+*Note*: Spaces are okay with command arguments thanks to Discord's API 😊
 
-By default two weeks dedicated to a quanitity of goals. All tasks will be assigned to some sprint and a message of TODOs for a specific sprint will be posted by a day offset
+## General Commands
 
-At the end of a sprint, the program will mark what was accomplished, and if a new milestone was met, etc
+### `/help`
+Prints the main helper message
 
-## Project Members
+### `/help [command]`
+Gives more detailed information for a specific sub-command
 
-This is the default role for users within a project. These users can only update progress on a task, mark that they are finished, and print any data about a project. 
+**Example**: `/help cmd:project` - gives information about project commands
 
-## Leads 
+## Project Commands
 
-These users can access default commands, and are also able to assign tasks and approve tasks for a given project member. 
+The `/project` command handles project settings and control with different permission levels.
 
-## Admins 
+### Project Control (REGISTERED USER)
 
-These users and full control of a project, and are able to assign tasks to leads. These users can also modify settings of a project and determine which milestone a project is currently on
+#### `/project start [msname] [msdate] [msdesc]`
+- Starts a project in the given Discord channel category
+- Initiates the project's first milestone with the given values
+- The initial milestone becomes the active milestone
+- Date format: MM/DD/YYYY
+- Your account/role must be authorized to start a project
 
-# Usage 
+### Project Control (OWNER+)
 
-## Set Up (DONE: NEEDS TESTING)
+#### `/project end [projectref]`
+- Ends a project and removes it from active projects
+- Requires inputting the active projectref to confirm the project's ending
 
-Each project will need to be set up through these following commands 
+#### `/project resume [projectref]`
+- Resumes a project that was ended and moves it to the current channel's category
+- Your Discord account must have been an owner in that project
 
-``` 
- !project start [initial milestone name] [initial milestone deadline] [inital milestone desc]
-```
-This will start the project with default settings, where sprint 0 starts the current day its ran (pushed back to 8am)
+#### `/project move [projectref]`
+- Moves an active project to another Discord category
+- All tasks, milestones, and roles are maintained during the move
+- Must be the owner of the project
 
-By default sprints are turned off
+### Project Settings (ADMIN++)
 
-Only privilleged users can run this command, (and i'll figure out a way to set this, maybe some form of auth). By default the output channel will be the channel the command is ran 
+#### `/project set [setting] [value]`
+Updates project settings. Available settings include:
+- Changing output channel
+- Update project description
+- Toggle sprints
+- Sprint message
+- Sprint length
+- Toggle sprint pings
 
-## Settings
+### Project Roles (ADMIN ONLY)
 
-For project admins, you can adjust default settings here with !project set ...
+#### `/project role [op] [user] [role]`
+Manages user roles within the project
+- `role` parameter is optional for remove operations
 
+### Project Info
 
-### Setting Project Description Messages (WIP)
+#### `/project info` (WIP)
+Displays information for the current project
 
-Set the project description! I recommend just link a google doc
+## Milestone Commands
 
-``` 
- !project set project_desc [desc]
-``` 
-### Setting Custom Sprint Messages (WIP)
+The `/milestone` command handles creation and movement of milestones for the current project (ADMIN + LEADS ONLY).
 
-Change the sprint msg 
+### Milestone Control (ADMIN+)
 
-``` 
- !project set sprint_msg [mesg here no brackets]
-``` 
+#### `/milestone create [msname] [msdate] [msdesc]`
+- Creates a milestone for the project with the given arguments
+- Returns the milestone reference tied to this milestone
+- Note: Does not make this milestone active
 
-### Toggle Project Sprint Pings (WIP)
+#### `/milestone move [direction]`
+- Moves the active milestone to the previous or next milestone
+- Direction options: `next` or `prev`
+- Movement is determined by due date order
+- Example: If current milestone is due 06/20/2025 and next is 07/25/2025, `/milestone move direction:next` moves to the 07/25/2025 milestone
 
-Enable or disable @here pings for sprint messages 
+#### `/milestone delete [taskref]` (WIP)
+- Removes the milestone and all associated tasks
+- Requires confirmation message
+- **This is permanent and cannot be undone!**
 
-``` 
- !project set sprint_ping [off | on]
-``` 
+### Milestone Info
 
-### Toggle Project Automatic Sprint Messages (WIP)
+#### `/milestone map`
+Creates a milestone map showing task status:
+- Unassigned tasks
+- In progress tasks
+- In review tasks
+- Completed tasks
 
-Enable or disable end of sprint messages all together
+## Task Commands
 
-``` 
- !project set sprint_auto [off | on]
-``` 
+The `/task` command handles creating, assigning, progress tracking, completing, and approvals for tasks within a milestone.
 
-### Change sprint week length (WIP)
+### Starting Tasks (LEADS+)
 
-Change the duration of a sprint (and when to auto remind of given sprints tasks)
+#### `/task create [name] [desc]`
+- Creates a new task for the current milestone
+- Returns a task reference for use in other commands
 
-``` 
- !project set sprint_length [#]
-``` 
+#### `/task assign [user] [taskref] [expectation]`
+- Assigns a task to a user
+- Task expectations can use either AGILE story points or due dates
 
-### Set Output Channel (WIP)
+### Task Progress
 
-Set the channel for the bot to output sprint messages and other logs to the current id
+#### `/task progress [taskref] [desc]`
+- Creates a progress update for the user's assigned task
+- Description outlines the current progress
 
-``` 
- !project set output 
-``` 
+#### `/task complete [taskref] [desc]`
+- Marks a task as complete and ready for review
+- Pings the assigner to review the task
 
-### Toggle Sprints (WIP)
+### Reviewing Tasks (LEADS+)
 
-If sprints is something you do not want for your project, then feel free to disable it! All tasks will only use dates, so anything commands using sprints will not work
+#### `/task approve [taskref]`
+- Marks a task as approved and done for the current milestone
+- Leads can only approve tasks they assigned to normal members
+- Admins can approve any tasks, including tasks of other admins
 
-``` 
- !project set sprints [off | on]
-``` 
+#### `/task reject [taskref] [desc]`
+- Marks a task as not approved and returns it to in-progress status
+- Description provides feedback on what needs to be fixed
+- Leads can only reject tasks they assigned to normal members
+- Admins can reject any tasks, including tasks of other admins
 
-### Add Admin (WIP)
+### General Task Commands
 
-Add admin to a differnet user 
+#### `/task list`
+Lists all tasks for the current milestone and displays their status
 
-``` 
- !project add admin @user
-``` 
+#### `/task list [user]`
+Lists tasks assigned to a specific user, showing tasks that are:
+- In progress
+- In review
+- Complete
 
-### Remove Admin (WIP)
+## Permission Levels
 
-Remove admin from a user
-
-``` 
- !project remove admin @user
-``` 
-
-For the sake that this isn't that deep, all admins have equal perms, meaning any admin can remove any other admin within a project. DONT BE DUMB PLEASE
-
-### Add new Lead (WIP)
-
-Add a new user to be a lead under a certain sub team
-
-```
- !project add lead @user 
-``` 
-
-so only these users can set tasks for users under the given subteam 
-
-### Remove Lead (WIP)
-
-Removes user as project lead
-
-``` 
- !project rm lead @user
-``` 
-## Project Control (ADMIN ONLY)
-
-### Complete Project (WIP)
-
-``` 
- !project complete
-``` 
-
-The bot will first check if all tasks in milestones are complete, and if not identify those milestones not done and ask if they wish to move foward, use !select [yes | no] to move on
-
-The bot will then ask again if they are sure
-
-use !select [yes | no] to make your decision
-
-once done the project is marked as complete! A project report will be generated and you'll be able to view the projects progress and stats (and who did what)
-
-### Pause Project (WIP)
-
-``` 
- !project pause 
-``` 
-
-All work and auto stuff scheduled like sprints will be paused, no commands will work except for project control and project setting commands 
-
-The command will prompt you to confirm action
-
-### Resume Project (WIP)
-
-``` 
- !project resume
-``` 
-
-Resumes a project, and updates you on any tasks that were missed due to the pause 
-
-Command will also prompt confirmation
-
-## Project Info (anyone)
-
-Prints info out about a project set by settings
-
-``` 
- !project info
-``` 
-
-## Project Team
-
-prints out the team, roles, and stats
-
-``` 
- !project team
-``` 
-
-
-## Milestones
-
-### Create new milestone (Admin ONLY) (WIP)
-
-Creates a new milestone and prints its id
-
-``` 
- !milestone create [milestone name] [milestone deadline] [milestone desc]
-``` 
-
-### Delete new milestone (Admin ONLY) (WIP)
-
-Delete a given milestone, CANNOT BE THE CURRENT MILESTONE
-
-``` 
- !milestone delete [milestone id]
-``` 
-
-### Updating a milestone (ADMIN ONLY) (WIP)
-
-Updating Deadline 
-
-``` 
- !milestone update deadline [milestone id] [milestone deadline]
-``` 
-
-Updating desc 
-
-``` 
- !milestone update desc [milestone id] [milestone desc]
-``` 
-
-Updating name 
-
-``` 
- !milestone update name [milestone id] [milestone name]
-``` 
-
-### Move To Next Milestone (ADMIN ONLY) (WIP)
-
-Moves to the next milestone if one exists 
-
-``` 
- !milestone move next
-``` 
-
-Moves to the previous milestone if one exists
-
-``` 
- !milestone move prev
-``` 
-
-Moves to a given milestone
-
-``` 
- !milestone to [milesstone id]
-``` 
-
-### Milestone Info (anyone) (WIP)
-
-Current milestone
-
-``` 
- !milestone info
-``` 
-
-Given milestone
-
-``` 
- !milestone info [milestone id]
-``` 
-
-### Overall Milestone Map (WIP)
-
-Gets a map of the projects milestone map
-
-``` 
- !milestone map
-``` 
-
-## Tasks (Steps)
-
-For tasks commnads, for commands with leads and amdins they follow this permission structure
-
-Member cannot modify any tasks 
-
-Lead can only modify their tasks and their subordinate tasks
-
-Admin can modify any tasks
-
-Below will list out the usuage for tasks for a given project
-
-### Create Tasks (Leads and Admins) (WIP)
-
-Create a task for the current milestone
-
-``` 
- !task create [task name] [desc] 
-``` 
-
-This command will give you a task_ref that has no spaces, where you will use to assign the task later
-
-It will also give you task id, which you can use later
-
-### Assign Tasks (Leads and Admins) (WIP)
-
-Will assign a task for a user and will also give you a task id
-
-A user cannot be given a task with the same name
-
-Assigning a prev created task 
-
-```
- !task assign @user [task_ref] [due_date]
-```
-
-Assign a task: 
-
-
-Date version: 
-
-``` 
- !task assign @user [task_ref] [due date] 
-``` 
-
-Sprint version (the task still has a date under the hood, and is due at the end of said sprint): 
-
-``` 
- !task assign @user [task_ref] [story points] 
-``` 
-
-If a user is already assigned the task ref, and you assign a new user, the original user will no longer be assigned to that task
-
-### Remove Task (Leads and Admins) (WIP)
-
-Removes task from the project
-
-``` 
- !task remove @task [task_id]
-``` 
-
-### Update deadline of Task (Leads and Admins) (WIP)
-
-Update a task's deadline
-
-date method: 
-
-``` 
- !task update deadline [task_ref] [new date]
-``` 
-
-
-### Mark as Complete (complex perms) (WIP)
-
-Approves a task after its marked as complete by its subords, and updates the task as complete
-
-``` 
- !task approve [task_id]
-``` 
-
-### Dissaprove (complex perms) (WIP)
-
-Dissaproves the tasks and makes sets it to not being done, same permissions as approve
-
-``` 
- !task reject [task_id] [needed fixes]
-``` 
-
-### Retrieve Current Tasks (Any) (WIP)
-
-Gets the user's current assigned tasks 
-
-Get all tasks
-
-``` 
- !task list
-``` 
-
-Get @user's tasks do
-
-``` 
- !task list @user
-``` 
-
-### Update Progress on Task (Any) (WIP)
-
-Update the current progress of a task
-
-``` 
- !task progress [task_ref] [desc]
-``` 
-
-
-
-
-### Set to done on Task (Any) (WIP)
-
-Update the current progress of a task
-
-``` 
- !task done [task_ref] [desc]
-``` 
-
-The bot will then prompt you to define which task to update given a number, to give its number use
-<!-- 
-``` 
- !select [number]
-```  -->
-
-If you wish to avoid this step and just use the tasks id, do 
-
-``` 
- !task done [task id] [desc]
-``` 
-
-This will then ping a lead to review said commands
-
+- **REGISTERED USER**: Can start projects
+- **LEADS+**: Can create and assign tasks, review tasks they assigned
+- **ADMIN+**: Can manage milestones, approve/reject any tasks
+- **ADMIN++**: Can modify project settings
+- **OWNER+**: Can end, resume, and move projects
