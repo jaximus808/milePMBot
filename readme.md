@@ -1,8 +1,10 @@
 # MilestonePM Bot
 
-Thanks for using the MilestonePM bot! 😊
+Thanks for checking out the MilestonePM bot! 😊
 
-This Discord bot helps manage projects, milestones, and tasks within your Discord server. It provides a comprehensive project management system with role-based permissions and milestone tracking.
+This Discord bot helps manage projects, milestones, and tasks within your Discord server through text-commands. It provides a comprehensive project management system with role-based permissions and milestone tracking. 
+
+With text-commands, updating and tracking progress is much quicker compared to drag and drop. No more navigating confusing UI, just run simple commands that are easier to navigate thanks to Discords API. 
 
 ## Concepts and Usuage
 
@@ -208,3 +210,6 @@ Lists tasks assigned to a specific user, showing tasks that are:
 - In review
 - Complete
 
+## Contributing
+
+Contributions are welcome! Due to how new the project is no active proccedure is made to support contributions, but pleae feel free to open any issues for this project.
