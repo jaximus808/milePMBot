@@ -7,6 +7,7 @@ import (
 )
 
 func RegisterCommands(s *discordgo.Session, guildId string) {
+
 	commands := []*discordgo.ApplicationCommand{
 		{
 			Name:        "project",
@@ -14,7 +15,7 @@ func RegisterCommands(s *discordgo.Session, guildId string) {
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "start",
-					Description: "create a project",
+					Description: "Create a project (SERVER ADMIN ONLY)",
 					Type:        discordgo.ApplicationCommandOptionSubCommand,
 					Options: []*discordgo.ApplicationCommandOption{
 						{
@@ -38,7 +39,7 @@ func RegisterCommands(s *discordgo.Session, guildId string) {
 				},
 				{
 					Name:        "set",
-					Description: "update a project setting",
+					Description: "update a project setting (OWNER ONLY)",
 					Type:        discordgo.ApplicationCommandOptionSubCommand,
 					Options: []*discordgo.ApplicationCommandOption{
 						{
@@ -80,6 +81,37 @@ func RegisterCommands(s *discordgo.Session, guildId string) {
 							Description:  "role: Required for adding a role",
 							Required:     false,
 							Autocomplete: true,
+						},
+					},
+				},
+				{
+					Name:        "end",
+					Description: "end a project (OWNER ONLY)",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+				},
+				{
+					Name:        "move",
+					Description: "end a project (OWNER ONLY)",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "projectref",
+							Description: "type the project ref for confirmation",
+							Required:    true,
+						},
+					},
+				},
+				{
+					Name:        "resume",
+					Description: "end a project (OWNER ONLY)",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+					Options: []*discordgo.ApplicationCommandOption{
+						{
+							Type:        discordgo.ApplicationCommandOptionString,
+							Name:        "projectref",
+							Description: "type the project ref for confirmation",
+							Required:    true,
 						},
 					},
 				},

@@ -13,7 +13,6 @@ import (
 func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
 
 	// TODO: MUST ADD A CHECK THAT THERE IS NO ALREADY ACTIVE PROJECT
-
 	if msgInstance.GuildID == "" {
 		return util.CreateHandleReport(false, output.NOT_A_CHANNEL)
 	}
@@ -22,6 +21,11 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 
 	if err != nil || channel.ParentID == "" {
 		return util.CreateHandleReport(false, output.NOT_A_CHANNEL)
+	}
+
+	if !util.CheckDiscordPerm(msgInstance.Member.User.ID, msgInstance.GuildID,
+		msgInstance.Member.Permissions) {
+		return util.CreateHandleReport(false, "❌ Missing Server Admin Permissions!")
 	}
 
 	msName := util.GetOptionValue(args.Options, "msname")
@@ -61,7 +65,7 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
-	userRole, roleError := util.DBCreateRole(project.ID, userId, int(util.AdminRole))
+	userRole, roleError := util.DBCreateRole(project.ID, userId, int(util.OwnerRole))
 	if roleError != nil || userRole == nil {
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
@@ -78,5 +82,12 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
-	return util.CreateHandleReport(true, output.SUCCESS_CREATE_PROJECT)
+	//CREATE A REF!!!
+
+	projectRefUpdate, projectRefUpdateError := util.DBUpdateProjectRef(project.ID)
+	if projectRefUpdateError != nil || projectRefUpdate == nil {
+		return util.CreateHandleReport(false, output.FAILURE_SERVER)
+	}
+
+	return util.CreateHandleReport(true, output.MakeSuccessCreateProject(*projectRefUpdate.ProjectRef))
 }

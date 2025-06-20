@@ -1,0 +1,70 @@
+package projects
+
+import (
+	"fmt"
+	"strconv"
+
+	"github.com/bwmarrin/discordgo"
+	"github.com/jaximus808/milePMBot/internal/discord"
+	output "github.com/jaximus808/milePMBot/internal/ouput/discord"
+	"github.com/jaximus808/milePMBot/internal/util"
+)
+
+func MoveProject(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
+
+	_, errorHandle := util.SetUpProjectInfo(msgInstance)
+
+	if errorHandle == nil {
+		return util.CreateHandleReport(false, "❌ You can't move a project into a category with an already active project!")
+	}
+
+	channel, err := discord.DiscordSession.Channel(msgInstance.ChannelID)
+
+	if err != nil || channel.ParentID == "" {
+		return util.CreateHandleReport(false, output.NOT_A_CHANNEL)
+	}
+
+	if !util.CheckDiscordPerm(msgInstance.Member.User.ID, msgInstance.GuildID,
+		msgInstance.Member.Permissions) {
+		return util.CreateHandleReport(false, "❌ Missing Server Admin Permissions!")
+	}
+
+	// must be owner
+
+	projectRef := util.GetOptionValue(args.Options, "projectref")
+
+	selectProject, selectedProjectError := util.DBGetProjectRef(projectRef)
+	if selectedProjectError != nil || selectProject == nil {
+		return util.CreateHandleReport(false, "❌ No project exists with that projectref!")
+	}
+
+	userRole, userRoleError := util.DBGetRole(selectProject.ID, msgInstance.Member.User.ID)
+
+	if userRoleError != nil || userRole == nil {
+		return util.CreateHandleReport(false, "❌ You dont have permissions to move that project here!")
+	}
+
+	if userRole.RoleLevel != int(util.OwnerRole) {
+		return util.CreateHandleReport(false, "❌ You dont have permissions to move that project here!")
+	}
+
+	channelId, channelIdError := strconv.Atoi(msgInstance.ChannelID)
+	parentId, parentIdError := strconv.Atoi(channel.ParentID)
+	guildId, guildIdError := strconv.Atoi(channel.GuildID)
+
+	if channelIdError != nil || parentIdError != nil || guildIdError != nil {
+		return util.CreateHandleReport(false, output.FAILURE_SERVER)
+	}
+
+	updateActiveProject, updateActiveProjectError := util.DBUpdateProjectId(selectProject.ID, guildId, parentId)
+
+	if updateActiveProjectError != nil || updateActiveProject == nil {
+		return util.CreateHandleReport(false, "**❌ This project is inactive**\nYou can move it by doing /project resume with the same project ref!")
+	}
+	updateProject, updateProjectError := util.DBUpdateProjectOutputChannel(selectProject.ID, channelId)
+	if updateProjectError != nil || updateProject == nil {
+		return util.CreateHandleReport(false, output.FAILURE_SERVER)
+	}
+
+	return util.CreateHandleReport(true, fmt.Sprintf("**🎉 Project %s has successfully moved to this category!**\nAll tasks, milestone, and roles have been transfered!", projectRef))
+}

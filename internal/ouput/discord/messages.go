@@ -1,5 +1,7 @@
 package output
 
+import "fmt"
+
 /*
 General Messages
 */
@@ -66,28 +68,31 @@ const HELP_MSG_PROJECT = `>>> # Help Page: Project Commands
 For more in-depth guide on how to use the bot review its concepts here (holder):
 [https://github.com/jaximus808/milePMBot]
 
-## Project Control (**ADMIN ONLY**)
+## Project Control (**REGISTERED USER**)
 
 ` + "```/project start [msname] [msdate - in MM/DD/YYYY] [msdesc]```" + `
 - Starts a project in the given discord channel category, and initiates the projects first milestone with the given values
 - The initial milestone will become the active milestone
+- Your account/role must be authorized to start a project -> visit the link to get started [WIP]
 
-` + "```/project end [WIP]```" + `
-- Ends a project and makes the active project nolonger apart of the active project
-- Will ask for confirmation with a follow up message of the project's ref to prevent mistakes
-- Will return a project ref you can use to get project info or resuming the project 
+## Project Control (**OWNER+**)
 
-` + "```/project resume [ref] [WIP]```" + `
+` + "```/project end [projectref]```" + `
+- Ends a project and makes the active project no-longer apart of the active project
+- You need to input the active projectref to confirm the project's ending 
+
+` + "```/project resume [projectref]```" + `
 - Resumes a project that was ended and moves it into the current channels category
-- Your discord account must have been an admin in that project
+- Your discord account must have been an owner in that project
 
-` + "```/project move [ref] [WIP]```" + `
+` + "```/project move [projectref]```" + `
 - Moves an active project to another discord category
 - All tasks, milestones, and roles will be maintained in this movement as well
+- Must be the owner of the project
 
-## Project Settings (**ADMIN ONLY**)
+## Project Settings (**ADMIN++**)
 
-` + "```/project set [setting] [setting]```" + `
+` + "```/project set [setting] [value]```" + `
 - Updates the setting of a new project to have a specific value
 - Our current settings include: changing output channel, update project desc, toggle sprints, sprint message, sprint length, toggle sprint pings
 
@@ -107,7 +112,7 @@ const HELP_MSG_MILESTONE = `>>> # Help Page: Milestone Commands
 For more in-depth guide on how to use the bot review its concepts here (holder):
 [https://github.com/jaximus808/milePMBot]
 
-## Milestone Control (**ADMIN**)
+## Milestone Control (**ADMIN+**)
 
 ` + "```/milestone create [msname] [msdate] [msdesc]```" + `
 - Creates a milestone for the project with the given milestone arguments
@@ -135,7 +140,7 @@ const HELP_MSG_TASK = `>>> # Help Page: Task Commands
 For more in-depth guide on how to use the bot review its concepts here (holder):
 [https://github.com/jaximus808/milePMBot]
 
-## Starting Tasks (**ADMIN + LEADS**)
+## Starting Tasks (**Leads+**)
 
 ` + "```/task create [name] [desc]```" + `
 - Creates a new task for the current milestone with the task name and tas description
@@ -154,7 +159,7 @@ For more in-depth guide on how to use the bot review its concepts here (holder):
 - Marks a task as complete and ready for review, and will ping your assigner to review the task
 
 
-## Reviewing Tasks (**Leads+Aadmins**)
+## Reviewing Tasks (**Leads+**)
 
 ` + "```/task approve [taskref]```" + `
 - Marks a task as approved and done for the current milestone
@@ -185,7 +190,9 @@ Project
 const FAIL_ALR_PROJECT = "❌ A project already exists here!"
 
 // PROJECT SUCCESSES
-const SUCCESS_CREATE_PROJECT = "# Your project has just been created! 🎉\n All commands now work within the channels in this category. \n Feel free to refer to /help or our webpage for references on my features 😃"
+func MakeSuccessCreateProject(projectRef string) string {
+	return fmt.Sprintf("# Your project has just been created! 🎉\n## Project Ref: %s\n All commands now work within the channels in this category. \n Feel free to refer to /help or our webpage for references on my features 😃", projectRef)
+}
 
 /*
 Milestone failure messages

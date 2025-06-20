@@ -15,7 +15,7 @@ func InitalizeDiscordGo() error {
 	if err != nil {
 		return err
 	}
-
+	session.StateEnabled = true
 	session.Identify.Intents = discordgo.IntentsGuildMessages | discordgo.IntentsMessageContent | discordgo.IntentsGuilds | discordgo.IntentsGuildMembers
 	DiscordSession = session
 	return nil

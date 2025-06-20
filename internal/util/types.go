@@ -8,6 +8,7 @@ const (
 	DefaultRole RoleLevel = iota
 	LeadRole
 	AdminRole
+	OwnerRole
 )
 
 // ActiveProjects
@@ -87,6 +88,7 @@ type Project struct {
 	SprintN       *int      `json:"sprint_n"`
 	SprintPing    *bool     `json:"sprint_ping"`
 	LastPingAt    time.Time `json:"last_ping_date"`
+	ProjectRef    *string   `json:"project_ref"`
 }
 
 type ProjectInsert struct {
@@ -104,6 +106,7 @@ type ProjectInsert struct {
 	SprintN       *int       `json:"sprint_n,omitempty"`
 	SprintPing    *bool      `json:"sprint_ping,omitempty"`
 	LastPingAt    time.Time  `json:"last_ping_date,omitempty"`
+	ProjectRef    *string    `json:"project_ref,omitempty"`
 }
 
 type ProjectUpdate = ProjectInsert

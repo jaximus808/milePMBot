@@ -34,10 +34,6 @@ func AddRole(msgInstance *discordgo.InteractionCreate, args *discordgo.Applicati
 		return util.CreateHandleReport(false, "❌ You don't have the valid permission for this command")
 	}
 
-	if userRole.RoleLevel != int(util.AdminRole) {
-		return util.CreateHandleReport(false, "❌ You don't have the valid permission for this command")
-	}
-
 	userIdNum, idError := strconv.Atoi(userId)
 	if idError != nil {
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
@@ -45,16 +41,19 @@ func AddRole(msgInstance *discordgo.InteractionCreate, args *discordgo.Applicati
 
 	// good to go now
 
-	roleInt := 0
-
 	if op == "add" {
+		roleInt := 0
+
 		if role == "admin" {
 			roleInt = int(util.AdminRole)
 		} else if role == "lead" {
 			roleInt = int(util.LeadRole)
-		} else {
-			return util.CreateHandleReport(false, "❌ Expected a valid role to be inserted!")
 		}
+
+		if userRole.RoleLevel <= roleInt {
+			return util.CreateHandleReport(false, "❌ You don't have the valid permission for this command")
+		}
+
 		roleExist, roleCheckError := util.DBGetRole(currentProject.ID, userId)
 		if roleCheckError == nil || roleExist != nil {
 			return util.CreateHandleReport(false, "❌ A user can't have two roles!")
@@ -69,6 +68,12 @@ func AddRole(msgInstance *discordgo.InteractionCreate, args *discordgo.Applicati
 		if roleCheckError != nil || roleExist == nil {
 			return util.CreateHandleReport(false, "❌ This user doesn't have a role!")
 		}
+
+		roleInt := roleExist.RoleLevel
+		if userRole.RoleLevel <= roleInt {
+			return util.CreateHandleReport(false, "❌ You don't have the valid permission for this command")
+		}
+
 		// do later
 		deleteError := util.DBDeleteRole(roleExist.ID)
 		if deleteError != nil {

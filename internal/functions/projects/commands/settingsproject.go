@@ -24,6 +24,16 @@ func SettingProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 	setting := util.GetOptionValue(args.Options, "setting")
 	value := util.GetOptionValue(args.Options, "value")
 
+	userRole, userRoleError := util.DBGetRole(currentProject.ID, msgInstance.Member.User.ID)
+
+	if userRoleError != nil || userRole == nil {
+		return util.CreateHandleReport(false, "❌ You don't have the valid permission for this command")
+	}
+
+	if userRole.RoleLevel < int(util.AdminRole) {
+		return util.CreateHandleReport(false, "❌ You don't have the valid permission for this command")
+	}
+
 	switch setting {
 	case "output":
 		re := regexp.MustCompile(`<#!?(\d+)>`)

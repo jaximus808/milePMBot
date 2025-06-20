@@ -25,8 +25,8 @@ func StartSprintUpdateJob() (gocron.Scheduler, error) {
 	_, err = s.NewJob(
 		gocron.WeeklyJob(
 			1,
-			gocron.NewWeekdays(time.Tuesday),
-			gocron.NewAtTimes(gocron.NewAtTime(16, 18, 0)),
+			gocron.NewWeekdays(time.Monday),
+			gocron.NewAtTimes(gocron.NewAtTime(8, 0, 0)),
 		),
 		gocron.NewTask(
 			jobs.WeeklyRemindProjects,
