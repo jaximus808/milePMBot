@@ -15,5 +15,13 @@ func ProjectInfo(msgInstance *discordgo.InteractionCreate, args *discordgo.Appli
 		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
 	}
 
-	return util.CreateHandleReport(true, fmt.Sprintf("# Project: %s\n## Desc: %s", *currentProject.ProjectRef, *currentProject.Desc))
+	// getting info
+	milestone, milestoneErr := DB.DBGetMilestoneWithId(*currentProject.CurrentMID)
+
+	if milestoneErr != nil || milestone == nil {
+		return util.CreateHandleReport(false, output.FAILURE_SERVER)
+	}
+
+	return util.CreateHandleReport(
+		true, fmt.Sprintf(">>> # Project Ref: %s\n**Desc:** %s\nCurrent Milestone: %s\nDue: %s", *currentProject.ProjectRef, *currentProject.Desc, *milestone.DisplayName, milestone.DueDate.Format("January 2, 2006")))
 }

@@ -130,7 +130,7 @@ Manages user roles within the project
 
 ### Project Info
 
-#### `/project info` (WIP)
+#### `/project info`
 Displays information for the current project
 
 ## Milestone Commands

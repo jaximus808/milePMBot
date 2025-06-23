@@ -102,7 +102,7 @@ For more in-depth guide on how to use the bot review its concepts here (holder):
 
 ## Project Info
 
-` + "```/project info [WIP]```" + `
+` + "```/project info```" + `
 - Gives info for the current project 
 
 `
