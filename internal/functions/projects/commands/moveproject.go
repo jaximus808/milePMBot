@@ -10,9 +10,9 @@ import (
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func MoveProject(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
+func MoveProject(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption, DB util.DBClient) *util.HandleReport {
 
-	_, errorHandle := util.SetUpProjectInfo(msgInstance)
+	_, errorHandle := util.SetUpProjectInfo(msgInstance, DB)
 
 	if errorHandle == nil {
 		return util.CreateHandleReport(false, "❌ You can't move a project into a category with an already active project!")
@@ -33,12 +33,12 @@ func MoveProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Appli
 
 	projectRef := util.GetOptionValue(args.Options, "projectref")
 
-	selectProject, selectedProjectError := util.DBGetProjectRef(projectRef)
+	selectProject, selectedProjectError := DB.DBGetProjectRef(projectRef)
 	if selectedProjectError != nil || selectProject == nil {
 		return util.CreateHandleReport(false, "❌ No project exists with that projectref!")
 	}
 
-	userRole, userRoleError := util.DBGetRole(selectProject.ID, msgInstance.Member.User.ID)
+	userRole, userRoleError := DB.DBGetRole(selectProject.ID, msgInstance.Member.User.ID)
 
 	if userRoleError != nil || userRole == nil {
 		return util.CreateHandleReport(false, "❌ You dont have permissions to move that project here!")
@@ -56,12 +56,12 @@ func MoveProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Appli
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
-	updateActiveProject, updateActiveProjectError := util.DBUpdateProjectId(selectProject.ID, guildId, parentId)
+	updateActiveProject, updateActiveProjectError := DB.DBUpdateProjectId(selectProject.ID, guildId, parentId)
 
 	if updateActiveProjectError != nil || updateActiveProject == nil {
 		return util.CreateHandleReport(false, "**❌ This project is inactive**\nYou can move it by doing /project resume with the same project ref!")
 	}
-	updateProject, updateProjectError := util.DBUpdateProjectOutputChannel(selectProject.ID, channelId)
+	updateProject, updateProjectError := DB.DBUpdateProjectOutputChannel(selectProject.ID, channelId)
 	if updateProjectError != nil || updateProject == nil {
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}

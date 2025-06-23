@@ -10,9 +10,9 @@ import (
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func CompleteTask(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
+func CompleteTask(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption, DB util.DBClient) *util.HandleReport {
 
-	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
+	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance, DB)
 
 	if errorHandle != nil || currentProject == nil {
 		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
@@ -21,7 +21,7 @@ func CompleteTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appl
 	taskRef := util.GetOptionValue(args.Options, "taskref")
 	desc := util.GetOptionValue(args.Options, "desc")
 
-	currentTask, errorCurrentTask := util.DBGetTask(currentProject.ID, taskRef)
+	currentTask, errorCurrentTask := DB.DBGetTask(currentProject.ID, taskRef)
 
 	if errorCurrentTask != nil || currentTask == nil {
 		return util.CreateHandleReport(false, output.FAIL_TASK_DNE)
@@ -39,12 +39,12 @@ func CompleteTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appl
 	}
 
 	//now we need to make a progress row then ask for review
-	newProgress, newProgressError := util.DBCreateProgress(currentTask.ID, desc, true)
+	newProgress, newProgressError := DB.DBCreateProgress(currentTask.ID, desc, true)
 
 	if newProgressError != nil || newProgress == nil {
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
-	updatedTask, updatedTaskError := util.DBUpdateTaskRecentProgress(currentTask.ID, true)
+	updatedTask, updatedTaskError := DB.DBUpdateTaskRecentProgress(currentTask.ID, true)
 
 	if updatedTaskError != nil || updatedTask == nil {
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)

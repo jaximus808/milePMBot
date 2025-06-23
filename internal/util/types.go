@@ -1,6 +1,11 @@
 package util
 
-import "time"
+import (
+	"time"
+
+	"github.com/bwmarrin/discordgo"
+	"github.com/jaximus808/milePMBot/internal/discord"
+)
 
 type RoleLevel int
 
@@ -10,6 +15,75 @@ const (
 	AdminRole
 	OwnerRole
 )
+
+type HandleReport struct {
+	success    bool
+	timestamp  time.Time
+	info       string
+	outputNeed bool
+	outemdded  *discordgo.MessageEmbed
+	outputId   string
+}
+
+type TaskReport struct {
+	Unnassigned []string
+	InProgress  []string
+	InReview    []string
+	Done        []string
+}
+
+type MilestoneReport struct {
+	Upcoming         []string
+	CurrentMilestone string
+	Previous         []string
+}
+
+func (HR *HandleReport) GetInfo() string {
+	return HR.info
+}
+func (HR *HandleReport) GetSuccess() bool {
+	return HR.success
+}
+func (HR *HandleReport) GetTime() time.Time {
+	return HR.timestamp
+}
+
+func (HR *HandleReport) NeedsOutput() bool {
+	return HR.outputNeed
+}
+func (HR *HandleReport) GetOutputMsg() *discordgo.MessageEmbed {
+	return HR.outemdded
+}
+func (HR *HandleReport) GetOutputId() string {
+	return HR.outputId
+}
+func CreateHandleReport(success bool, info string) *HandleReport {
+	return &HandleReport{
+		success:    success,
+		timestamp:  time.Now(),
+		info:       info,
+		outputNeed: false,
+		outemdded:  nil,
+		outputId:   "",
+	}
+}
+
+func CheckDiscordPerm(userId string, guildId string, perms int64) bool {
+
+	guild, err := discord.DiscordSession.State.Guild(guildId)
+	if err != nil {
+		return false
+	}
+	const manageGuild = discordgo.PermissionManageChannels
+	const adminGuild = discordgo.PermissionAdministrator
+	return perms&manageGuild != 0 || perms&adminGuild != 0 || guild.OwnerID == userId
+}
+
+type SupaDB struct{}
+
+/**
+* Supabase types
+**/
 
 // ActiveProjects
 type ActiveProject struct {

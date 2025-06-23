@@ -17,5 +17,4 @@ func InitializeSupabase() error {
 	}
 	Client = client
 	return nil
-
 }

@@ -11,7 +11,7 @@ import (
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func AssignTask(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
+func AssignTask(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption, DB util.DBClient) *util.HandleReport {
 
 	assignedID := util.GetOptionValue(args.Options, "user")
 
@@ -22,7 +22,7 @@ func AssignTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Applic
 	// 	return util.CreateHandleReport(false, "Expecting 3 args [@assign] [task_ref] [due_date or story points]")
 	// }
 
-	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
+	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance, DB)
 
 	if errorHandle != nil {
 		return errorHandle
@@ -61,7 +61,7 @@ func AssignTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Applic
 			return util.CreateHandleReport(false, output.ERROR_ARGS_ASSIGN)
 		}
 
-		assignedTask, assignedError = util.DBAssignTasksStoryPoints(currentProject.ID, taskRef, userId, assignedUserIdInt, storyPoint)
+		assignedTask, assignedError = DB.DBAssignTasksStoryPoints(currentProject.ID, taskRef, userId, assignedUserIdInt, storyPoint)
 
 		if assignedError != nil || assignedTask == nil {
 			return util.CreateHandleReport(false, output.FAIL_TASK_DNE)
@@ -69,7 +69,7 @@ func AssignTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Applic
 		moreDetails = fmt.Sprintf("Story Points: %d", storyPoint)
 
 	} else {
-		assignedTask, assignedError = util.DBAssignTasksDueDate(currentProject.ID, taskRef, userId, assignedUserIdInt, &dueDate)
+		assignedTask, assignedError = DB.DBAssignTasksDueDate(currentProject.ID, taskRef, userId, assignedUserIdInt, &dueDate)
 
 		if assignedError != nil || assignedTask == nil {
 			return util.CreateHandleReport(false, output.FAIL_TASK_DNE)

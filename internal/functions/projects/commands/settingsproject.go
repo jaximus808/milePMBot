@@ -13,9 +13,9 @@ import (
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func SettingProject(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
+func SettingProject(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption, DB util.DBClient) *util.HandleReport {
 
-	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
+	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance, DB)
 
 	if errorHandle != nil || currentProject == nil {
 		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
@@ -24,7 +24,7 @@ func SettingProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 	setting := util.GetOptionValue(args.Options, "setting")
 	value := util.GetOptionValue(args.Options, "value")
 
-	userRole, userRoleError := util.DBGetRole(currentProject.ID, msgInstance.Member.User.ID)
+	userRole, userRoleError := DB.DBGetRole(currentProject.ID, msgInstance.Member.User.ID)
 
 	if userRoleError != nil || userRole == nil {
 		return util.CreateHandleReport(false, "❌ You don't have the valid permission for this command")
@@ -62,7 +62,7 @@ func SettingProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 			return util.CreateHandleReport(false, "❌ You need to give a channel within the same category")
 		}
 
-		updatedProject, errUpdate := util.DBUpdateProjectOutputChannel(currentProject.ID, outChannelId)
+		updatedProject, errUpdate := DB.DBUpdateProjectOutputChannel(currentProject.ID, outChannelId)
 
 		if errUpdate != nil || updatedProject == nil {
 			return util.CreateHandleReport(false, output.FAILURE_SERVER)
@@ -80,7 +80,7 @@ func SettingProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 			strconv.Itoa(*updatedProject.OutputChannel),
 		)
 	case "description":
-		updatedProject, errUpdate := util.DBUpdateProjectDescription(currentProject.ID, value)
+		updatedProject, errUpdate := DB.DBUpdateProjectDescription(currentProject.ID, value)
 
 		if errUpdate != nil || updatedProject == nil {
 			return util.CreateHandleReport(false, output.FAILURE_SERVER)
@@ -98,7 +98,7 @@ func SettingProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 			strconv.Itoa(*updatedProject.OutputChannel),
 		)
 	case "message":
-		updatedProject, errUpdate := util.DBUpdateProjectSprintDesc(currentProject.ID, value)
+		updatedProject, errUpdate := DB.DBUpdateProjectSprintDesc(currentProject.ID, value)
 
 		if errUpdate != nil || updatedProject == nil {
 			return util.CreateHandleReport(false, output.FAILURE_SERVER)
@@ -128,7 +128,7 @@ func SettingProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 		} else {
 			return util.CreateHandleReport(false, "❌ expected Y or N")
 		}
-		updatedProject, errUpdate := util.DBUpdateProjectSprints(currentProject.ID, toggledSprint)
+		updatedProject, errUpdate := DB.DBUpdateProjectSprints(currentProject.ID, toggledSprint)
 
 		if errUpdate != nil || updatedProject == nil {
 			return util.CreateHandleReport(false, output.FAILURE_SERVER)
@@ -151,7 +151,7 @@ func SettingProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 			return util.CreateHandleReport(false, "❌ Expected a Number for the Sprint Duration. Ex: 3 -> 3 weeks")
 		}
 
-		updatedProject, errUpdate := util.DBUpdateProjectSprintDuration(currentProject.ID, sprintDuration)
+		updatedProject, errUpdate := DB.DBUpdateProjectSprintDuration(currentProject.ID, sprintDuration)
 
 		if errUpdate != nil || updatedProject == nil {
 			return util.CreateHandleReport(false, output.FAILURE_SERVER)
@@ -181,7 +181,7 @@ func SettingProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 		} else {
 			return util.CreateHandleReport(false, "❌ expected Y or N")
 		}
-		updatedProject, errUpdate := util.DBUpdateProjectPings(currentProject.ID, toggledSprint)
+		updatedProject, errUpdate := DB.DBUpdateProjectPings(currentProject.ID, toggledSprint)
 
 		if errUpdate != nil || updatedProject == nil {
 			return util.CreateHandleReport(false, output.FAILURE_SERVER)

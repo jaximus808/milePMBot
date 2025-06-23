@@ -10,11 +10,11 @@ import (
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func ApproveTask(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
+func ApproveTask(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption, DB util.DBClient) *util.HandleReport {
 
 	taskRef := util.GetOptionValue(args.Options, "taskref")
 
-	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
+	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance, DB)
 	if errorHandle != nil {
 		return errorHandle
 	}
@@ -23,13 +23,13 @@ func ApproveTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appli
 		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
 	}
 
-	currentRole, currentRoleError := util.DBGetRole(currentProject.ID, msgInstance.Member.User.ID)
+	currentRole, currentRoleError := DB.DBGetRole(currentProject.ID, msgInstance.Member.User.ID)
 
 	if currentRoleError != nil || currentRole == nil {
 		return util.CreateHandleReport(false, "❌ You lack valid permissions to approve tasks")
 	}
 
-	currentTask, currentTaskError := util.DBGetTask(currentProject.ID, taskRef)
+	currentTask, currentTaskError := DB.DBGetTask(currentProject.ID, taskRef)
 
 	if currentTaskError != nil || currentTask == nil {
 		return util.CreateHandleReport(false, fmt.Sprintf("❌ Could not find a task with the given task ref: %s", taskRef))
@@ -45,7 +45,7 @@ func ApproveTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appli
 
 	currentTime := time.Now()
 
-	updatedTask, errorUpdatedTask := util.DBTaskMarkComplete(currentProject.ID, taskRef, &currentTime)
+	updatedTask, errorUpdatedTask := DB.DBTaskMarkComplete(currentProject.ID, taskRef, &currentTime)
 
 	if updatedTask == nil || errorUpdatedTask != nil {
 		return util.CreateHandleReport(false, output.FAIL_TASK_DNE)

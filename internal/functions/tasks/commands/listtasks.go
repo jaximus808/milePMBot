@@ -11,12 +11,12 @@ import (
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func ListTasks(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
+func ListTasks(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption, DB util.DBClient) *util.HandleReport {
 
 	userRef := util.GetOptionValue(args.Options, "user")
 
 	if userRef == "" {
-		return getTaskForMilestone(msgInstance)
+		return getTaskForMilestone(msgInstance, DB)
 	} else {
 		re := regexp.MustCompile(`<@!?(\d+)>`)
 		match := re.FindStringSubmatch(userRef)
@@ -24,12 +24,12 @@ func ListTasks(msgInstance *discordgo.InteractionCreate, args *discordgo.Applica
 			return util.CreateHandleReport(false, "You need to @ a user!")
 		}
 		userId := match[1]
-		return getTaskForMilestoneForUser(msgInstance, userId)
+		return getTaskForMilestoneForUser(msgInstance, userId, DB)
 	}
 }
 
-func getTaskForMilestone(i *discordgo.InteractionCreate) *util.HandleReport {
-	currentProject, errorHandle := util.SetUpProjectInfo(i)
+func getTaskForMilestone(i *discordgo.InteractionCreate, DB util.DBClient) *util.HandleReport {
+	currentProject, errorHandle := util.SetUpProjectInfo(i, DB)
 
 	if errorHandle != nil {
 		return util.CreateHandleReport(false, "no project exists here :(")
@@ -46,7 +46,7 @@ func getTaskForMilestone(i *discordgo.InteractionCreate) *util.HandleReport {
 		Timestamp:   time.Now().Format(time.RFC3339),
 	}
 
-	tasks, tasksError := util.DBGetTasksForMilestone(currentProject.ID, *currentProject.CurrentMID)
+	tasks, tasksError := DB.DBGetTasksForMilestone(currentProject.ID, *currentProject.CurrentMID)
 
 	taskReport := util.ParseTaskList(tasks, i.GuildID)
 
@@ -105,8 +105,8 @@ func getTaskForMilestone(i *discordgo.InteractionCreate) *util.HandleReport {
 	)
 }
 
-func getTaskForMilestoneForUser(i *discordgo.InteractionCreate, userId string) *util.HandleReport {
-	currentProject, errorHandle := util.SetUpProjectInfo(i)
+func getTaskForMilestoneForUser(i *discordgo.InteractionCreate, userId string, DB util.DBClient) *util.HandleReport {
+	currentProject, errorHandle := util.SetUpProjectInfo(i, DB)
 
 	if errorHandle != nil || currentProject == nil {
 		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
@@ -119,7 +119,7 @@ func getTaskForMilestoneForUser(i *discordgo.InteractionCreate, userId string) *
 		Timestamp:   time.Now().Format(time.RFC3339),
 	}
 
-	tasks, tasksError := util.DBGetTasksForMilestoneAndAssignedUser(currentProject.ID, *currentProject.CurrentMID, userId)
+	tasks, tasksError := DB.DBGetTasksForMilestoneAndAssignedUser(currentProject.ID, *currentProject.CurrentMID, userId)
 	if tasksError != nil || tasks == nil {
 		return util.CreateHandleReport(false, output.ERROR_USER_NO_TASK)
 	}

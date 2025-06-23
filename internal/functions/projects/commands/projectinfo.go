@@ -8,8 +8,8 @@ import (
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func ProjectInfo(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
-	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
+func ProjectInfo(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption, DB util.DBClient) *util.HandleReport {
+	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance, DB)
 
 	if errorHandle != nil || currentProject == nil {
 		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)

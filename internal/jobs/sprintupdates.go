@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/go-co-op/gocron/v2"
+	integration "github.com/jaximus808/milePMBot/internal/integration/discord"
 	jobs "github.com/jaximus808/milePMBot/internal/jobs/functions"
 )
 
@@ -30,6 +31,7 @@ func StartSprintUpdateJob() (gocron.Scheduler, error) {
 		),
 		gocron.NewTask(
 			jobs.WeeklyRemindProjects,
+			integration.ActiveDBClient,
 		),
 	)
 	if err != nil {

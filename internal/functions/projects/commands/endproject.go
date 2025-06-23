@@ -8,15 +8,15 @@ import (
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func EndProject(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
-	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
+func EndProject(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption, DB util.DBClient) *util.HandleReport {
+	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance, DB)
 
 	if errorHandle != nil || currentProject == nil {
 		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
 	}
 
 	// must be owner
-	userRole, userRoleError := util.DBGetRole(currentProject.ID, msgInstance.Member.User.ID)
+	userRole, userRoleError := DB.DBGetRole(currentProject.ID, msgInstance.Member.User.ID)
 
 	if userRoleError != nil || userRole == nil {
 		return util.CreateHandleReport(false, "❌ You don't have the valid permission for this command")
@@ -26,7 +26,7 @@ func EndProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Applic
 		return util.CreateHandleReport(false, "❌ You don't have the valid permission for this command")
 	}
 
-	removeError := util.DBEndActiveProject(currentProject.ID)
+	removeError := DB.DBEndActiveProject(currentProject.ID)
 
 	if removeError != nil {
 		return util.CreateHandleReport(false, "❌ Something went wrong making project inactive")

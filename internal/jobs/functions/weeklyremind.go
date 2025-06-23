@@ -11,8 +11,8 @@ import (
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func WeeklyRemindProjects() {
-	projects, err := util.DBGetAllPingProjects()
+func WeeklyRemindProjects(DB util.DBClient) {
+	projects, err := DB.DBGetAllPingProjects()
 
 	if err != nil {
 		log.Print(err.Error())
@@ -23,8 +23,8 @@ func WeeklyRemindProjects() {
 	for _, project := range *projects {
 		// this might not scale well
 		if isAtLeastNWeeksAgo(project.LastPingAt, *project.SprintN) {
-			sendWeeklyMessage(&project)
-			util.DBUpdateResetSprintDuration(project.ID)
+			sendWeeklyMessage(&project, DB)
+			DB.DBUpdateResetSprintDuration(project.ID)
 		}
 	}
 
@@ -35,9 +35,9 @@ func isAtLeastNWeeksAgo(t time.Time, n int) bool {
 	return time.Since(t) >= time.Duration(n)*7*24*time.Hour
 }
 
-func sendWeeklyMessage(project *util.Project) {
+func sendWeeklyMessage(project *util.Project, DB util.DBClient) {
 
-	tasksMs, err := util.DBGetInProgressAndCompetedTask(project.ID, *project.CurrentMID)
+	tasksMs, err := DB.DBGetInProgressAndCompetedTask(project.ID, *project.CurrentMID)
 
 	if err != nil {
 		log.Print(err.Error())

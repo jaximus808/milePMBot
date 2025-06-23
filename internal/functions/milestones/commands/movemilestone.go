@@ -10,9 +10,9 @@ import (
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func MoveMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
+func MoveMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption, DB util.DBClient) *util.HandleReport {
 
-	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
+	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance, DB)
 
 	if errorHandle != nil {
 		return errorHandle
@@ -21,7 +21,7 @@ func MoveMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 	if currentProject == nil {
 		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
 	}
-	userRole, userRoleError := util.DBGetRole(currentProject.ID, msgInstance.Member.User.ID)
+	userRole, userRoleError := DB.DBGetRole(currentProject.ID, msgInstance.Member.User.ID)
 
 	if userRoleError != nil || userRole == nil {
 		return util.CreateHandleReport(false, "❌ You don't have the valid permission for this command")
@@ -30,7 +30,7 @@ func MoveMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 	if userRole.RoleLevel < int(util.AdminRole) {
 		return util.CreateHandleReport(false, "❌ You don't have the valid permission for this command")
 	}
-	currentMilestone, errorCurrentMilestone := util.DBGetMilestoneWithId(*currentProject.CurrentMID)
+	currentMilestone, errorCurrentMilestone := DB.DBGetMilestoneWithId(*currentProject.CurrentMID)
 	if errorCurrentMilestone != nil {
 		return util.CreateHandleReport(false, errorCurrentMilestone.Error())
 	}
@@ -47,10 +47,10 @@ func MoveMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 
 	if direction == "next" {
 		//need to insert current project
-		newMilestone, errorNewMilestone = util.DBGetNextMilestone(currentProject.ID, currentMilestone)
+		newMilestone, errorNewMilestone = DB.DBGetNextMilestone(currentProject.ID, currentMilestone)
 		displayDirection = "forward"
 	} else if direction == "prev" {
-		newMilestone, errorNewMilestone = util.DBGetPrevMilestone(currentProject.ID, currentMilestone)
+		newMilestone, errorNewMilestone = DB.DBGetPrevMilestone(currentProject.ID, currentMilestone)
 		displayDirection = "back"
 	}
 
@@ -58,7 +58,7 @@ func MoveMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 		return util.CreateHandleReport(false, "Could not get "+direction+" milestone")
 	}
 
-	newProject, newProjectError := util.DBUpdateCurrentMilestone(currentProject.ID, newMilestone.ID)
+	newProject, newProjectError := DB.DBUpdateCurrentMilestone(currentProject.ID, newMilestone.ID)
 	if newProjectError != nil {
 		return util.CreateHandleReport(false, "Could not update the project to its new milestone")
 	}

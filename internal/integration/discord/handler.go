@@ -14,6 +14,8 @@ import (
 
 const CommandPrefix = "/"
 
+var ActiveDBClient = util.SupaDB{}
+
 // Autocomplete interaction handler
 func autocompleteHandler(sess *discordgo.Session, interaction *discordgo.InteractionCreate) {
 
@@ -160,7 +162,7 @@ func handleTaskAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate
 				return
 			}
 
-			activeProject, errActiveProject := util.DBGetActiveProject(channel.GuildID, channel.ParentID)
+			activeProject, errActiveProject := ActiveDBClient.DBGetActiveProject(channel.GuildID, channel.ParentID)
 
 			if errActiveProject != nil || activeProject == nil {
 				log.Printf("No active project is running!")
@@ -177,9 +179,9 @@ func handleTaskAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate
 
 			// i need to restrict this to allow auto complete for leads
 			if subComamndName == "assign" {
-				taskOptions, taskOptionsError = util.DBGetUnassignedTasks(i.Member.User.ID, prefix, *activeProject.ProjectID)
+				taskOptions, taskOptionsError = ActiveDBClient.DBGetUnassignedTasks(i.Member.User.ID, prefix, *activeProject.ProjectID)
 			} else {
-				taskOptions, taskOptionsError = util.DBGetTasksAndSpecifyDC(i.Member.User.ID, prefix, isAssigner, *activeProject.ProjectID, isAssigner, false)
+				taskOptions, taskOptionsError = ActiveDBClient.DBGetTasksAndSpecifyDC(i.Member.User.ID, prefix, isAssigner, *activeProject.ProjectID, isAssigner, false)
 			}
 
 			if taskOptionsError != nil || taskOptions == nil {
@@ -212,7 +214,7 @@ func commandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	data := i.ApplicationCommandData()
 
-	var commandFunction func(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport
+	var commandFunction func(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption, DB util.DBClient) *util.HandleReport
 	var exists bool
 
 	baseCommand := data.Name
@@ -269,7 +271,7 @@ func commandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		})
 		return
 	}
-	handleReport := commandFunction(i, subCommand)
+	handleReport := commandFunction(i, subCommand, ActiveDBClient)
 	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{

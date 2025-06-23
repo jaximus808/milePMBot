@@ -10,9 +10,9 @@ import (
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func AddRole(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
+func AddRole(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption, DB util.DBClient) *util.HandleReport {
 
-	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
+	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance, DB)
 
 	if errorHandle != nil || currentProject == nil {
 		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
@@ -28,7 +28,7 @@ func AddRole(msgInstance *discordgo.InteractionCreate, args *discordgo.Applicati
 	}
 	userId := match[1]
 
-	userRole, userRoleError := util.DBGetRole(currentProject.ID, msgInstance.Member.User.ID)
+	userRole, userRoleError := DB.DBGetRole(currentProject.ID, msgInstance.Member.User.ID)
 
 	if userRoleError != nil || userRole == nil {
 		return util.CreateHandleReport(false, "❌ You don't have the valid permission for this command")
@@ -54,17 +54,17 @@ func AddRole(msgInstance *discordgo.InteractionCreate, args *discordgo.Applicati
 			return util.CreateHandleReport(false, "❌ You don't have the valid permission for this command")
 		}
 
-		roleExist, roleCheckError := util.DBGetRole(currentProject.ID, userId)
+		roleExist, roleCheckError := DB.DBGetRole(currentProject.ID, userId)
 		if roleCheckError == nil || roleExist != nil {
 			return util.CreateHandleReport(false, "❌ A user can't have two roles!")
 		}
-		userRole, roleError := util.DBCreateRole(currentProject.ID, userIdNum, int(roleInt))
+		userRole, roleError := DB.DBCreateRole(currentProject.ID, userIdNum, int(roleInt))
 		if roleError != nil || userRole == nil {
 			return util.CreateHandleReport(false, output.FAILURE_SERVER)
 		}
 		return util.CreateHandleReport(true, fmt.Sprintf("Success! <@%s> has been given the role: **%s**", userId, role))
 	} else if op == "remove" {
-		roleExist, roleCheckError := util.DBGetRole(currentProject.ID, userId)
+		roleExist, roleCheckError := DB.DBGetRole(currentProject.ID, userId)
 		if roleCheckError != nil || roleExist == nil {
 			return util.CreateHandleReport(false, "❌ This user doesn't have a role!")
 		}
@@ -75,7 +75,7 @@ func AddRole(msgInstance *discordgo.InteractionCreate, args *discordgo.Applicati
 		}
 
 		// do later
-		deleteError := util.DBDeleteRole(roleExist.ID)
+		deleteError := DB.DBDeleteRole(roleExist.ID)
 		if deleteError != nil {
 			return util.CreateHandleReport(false, output.FAILURE_SERVER)
 		}

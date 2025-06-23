@@ -10,11 +10,11 @@ import (
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func AddTask(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
+func AddTask(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption, DB util.DBClient) *util.HandleReport {
 
 	// ADD THE UNDERSCORE STUFF
 
-	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
+	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance, DB)
 	if errorHandle != nil {
 		return errorHandle
 	}
@@ -23,7 +23,7 @@ func AddTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Applicati
 		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
 	}
 
-	userRole, errorRole := util.DBGetRole(currentProject.ID, msgInstance.Member.User.ID)
+	userRole, errorRole := DB.DBGetRole(currentProject.ID, msgInstance.Member.User.ID)
 
 	if errorRole != nil || userRole == nil {
 		return util.CreateHandleReport(false, output.FAIL_PERMS)
@@ -47,7 +47,7 @@ func AddTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Applicati
 	taskName := util.GetOptionValue(args.Options, "name")
 	taskDesc := util.GetOptionValue(args.Options, "desc")
 
-	newTask, taskError := util.DBCreateTasks(currentProject.ID, taskName, taskDesc, *currentProject.CurrentMID)
+	newTask, taskError := DB.DBCreateTasks(currentProject.ID, taskName, taskDesc, *currentProject.CurrentMID)
 
 	if taskError != nil || newTask == nil {
 		return util.CreateHandleReport(false, output.FAIL_CREATE_TASK)

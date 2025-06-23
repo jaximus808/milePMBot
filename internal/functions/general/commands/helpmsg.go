@@ -8,7 +8,7 @@ import (
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func HelpMsg(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
+func HelpMsg(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption, DB util.DBClient) *util.HandleReport {
 
 	//todo: implement a job to delete these messages after 30 seconds to reduce clutter
 

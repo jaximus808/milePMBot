@@ -9,8 +9,8 @@ import (
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func ListMilestones(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
-	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
+func ListMilestones(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption, DB util.DBClient) *util.HandleReport {
+	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance, DB)
 
 	if errorHandle != nil {
 		return errorHandle
@@ -20,7 +20,7 @@ func ListMilestones(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
 	}
 
-	milestoneList, milestoneListError := util.DBGetMilestoneListDescending(currentProject.ID)
+	milestoneList, milestoneListError := DB.DBGetMilestoneListDescending(currentProject.ID)
 
 	if milestoneListError != nil || milestoneList == nil {
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)

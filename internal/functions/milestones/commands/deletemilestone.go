@@ -6,8 +6,8 @@ import (
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func DeleteMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
-	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
+func DeleteMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption, DB util.DBClient) *util.HandleReport {
+	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance, DB)
 
 	if errorHandle != nil {
 		return errorHandle
@@ -16,7 +16,7 @@ func DeleteMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.A
 	if currentProject == nil {
 		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
 	}
-	userRole, userRoleError := util.DBGetRole(currentProject.ID, msgInstance.Member.User.ID)
+	userRole, userRoleError := DB.DBGetRole(currentProject.ID, msgInstance.Member.User.ID)
 
 	if userRoleError != nil || userRole == nil {
 		return util.CreateHandleReport(false, "❌ You don't have the valid permission for this command")
@@ -27,7 +27,7 @@ func DeleteMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.A
 	}
 	msRef := util.GetOptionValue(args.Options, "msref")
 
-	milestone, milestoneError := util.DBGetMilestoneWithRef(msRef, currentProject.ID)
+	milestone, milestoneError := DB.DBGetMilestoneWithRef(msRef, currentProject.ID)
 
 	if milestoneError != nil || milestone == nil {
 		return util.CreateHandleReport(false, "❌ Could not find milestone, double check the milestone!")
@@ -36,7 +36,7 @@ func DeleteMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.A
 	if *currentProject.CurrentMID == milestone.ID {
 		return util.CreateHandleReport(false, "❌ You can't delete an active milestone!")
 	}
-	deleteErr := util.DBDeleteMilestone(milestone.ID)
+	deleteErr := DB.DBDeleteMilestone(milestone.ID)
 	if deleteErr != nil {
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}

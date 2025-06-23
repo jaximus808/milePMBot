@@ -10,7 +10,7 @@ import (
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
+func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption, DB util.DBClient) *util.HandleReport {
 
 	// TODO: MUST ADD A CHECK THAT THERE IS NO ALREADY ACTIVE PROJECT
 	if msgInstance.GuildID == "" {
@@ -37,7 +37,7 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 
 	// first check if an active project exists
 
-	_, checkActiveProject := util.DBGetActiveProject(channel.GuildID, channel.ParentID)
+	_, checkActiveProject := DB.DBGetActiveProject(channel.GuildID, channel.ParentID)
 
 	if checkActiveProject == nil {
 		return util.CreateHandleReport(false, output.FAIL_ALR_PROJECT)
@@ -52,7 +52,7 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
-	project, insertErr := util.DBCreateProject(guildId, parentId, channelId, "new project!")
+	project, insertErr := DB.DBCreateProject(guildId, parentId, channelId, "new project!")
 
 	if insertErr != nil || project == nil {
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
@@ -60,31 +60,31 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 
 	// now add milestones
 
-	milestone, msError := util.DBCreateMilestone(project.ID, msName, &msDate, msDesc)
+	milestone, msError := DB.DBCreateMilestone(project.ID, msName, &msDate, msDesc)
 	if msError != nil || milestone == nil {
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
-	userRole, roleError := util.DBCreateRole(project.ID, userId, int(util.OwnerRole))
+	userRole, roleError := DB.DBCreateRole(project.ID, userId, int(util.OwnerRole))
 	if roleError != nil || userRole == nil {
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 	//I NEEED TO ADD SOME TIME OF FAILURE ROLLBACK
 
 	// everything good, now assign this project as an active project
-	activeProject, activeProjctError := util.DBCreateActiveProject(guildId, parentId, project.ID)
+	activeProject, activeProjctError := DB.DBCreateActiveProject(guildId, parentId, project.ID)
 
 	if activeProjctError != nil || activeProject == nil {
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
-	updatedProject, updateProjectError := util.DBUpdateCurrentMilestone(project.ID, milestone.ID)
+	updatedProject, updateProjectError := DB.DBUpdateCurrentMilestone(project.ID, milestone.ID)
 	if updateProjectError != nil || updatedProject == nil {
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
 	//CREATE A REF!!!
 
-	projectRefUpdate, projectRefUpdateError := util.DBUpdateProjectRef(project.ID)
+	projectRefUpdate, projectRefUpdateError := DB.DBUpdateProjectRef(project.ID)
 	if projectRefUpdateError != nil || projectRefUpdate == nil {
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}

@@ -10,9 +10,9 @@ import (
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func CreateMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
+func CreateMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption, DB util.DBClient) *util.HandleReport {
 
-	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
+	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance, DB)
 
 	if errorHandle != nil {
 		return errorHandle
@@ -21,7 +21,7 @@ func CreateMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.A
 	if currentProject == nil {
 		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
 	}
-	userRole, userRoleError := util.DBGetRole(currentProject.ID, msgInstance.Member.User.ID)
+	userRole, userRoleError := DB.DBGetRole(currentProject.ID, msgInstance.Member.User.ID)
 
 	if userRoleError != nil || userRole == nil {
 		return util.CreateHandleReport(false, "❌ You don't have the valid permission for this command")
@@ -39,7 +39,7 @@ func CreateMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.A
 		return util.CreateHandleReport(false, output.FAIL_INCORRECT_DATE)
 	}
 
-	milestoneExist := util.DBMilestoneExistDate(currentProject.ID, &msDate)
+	milestoneExist := DB.DBMilestoneExistDate(currentProject.ID, &msDate)
 
 	if milestoneExist {
 		return util.CreateHandleReport(false, output.FAIL_MS_SAME_DATE)
@@ -47,12 +47,12 @@ func CreateMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.A
 
 	// now add milestones
 
-	milestone, msError := util.DBCreateMilestone(currentProject.ID, msName, &msDate, msDesc)
+	milestone, msError := DB.DBCreateMilestone(currentProject.ID, msName, &msDate, msDesc)
 	if msError != nil || milestone == nil {
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 	// create Ref
-	milestoneRef, refError := util.DBUpdateMilestoneRef(milestone.ID, *currentProject.ProjectRef)
+	milestoneRef, refError := DB.DBUpdateMilestoneRef(milestone.ID, *currentProject.ProjectRef)
 	if refError != nil || milestoneRef == nil {
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}

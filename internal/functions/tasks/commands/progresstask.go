@@ -10,9 +10,9 @@ import (
 	"github.com/jaximus808/milePMBot/internal/util"
 )
 
-func ProgressTask(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption) *util.HandleReport {
+func ProgressTask(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption, DB util.DBClient) *util.HandleReport {
 
-	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance)
+	currentProject, errorHandle := util.SetUpProjectInfo(msgInstance, DB)
 	if errorHandle != nil || currentProject == nil {
 		return util.CreateHandleReport(false, output.NO_ACTIVE_PROJECT)
 	}
@@ -20,13 +20,13 @@ func ProgressTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appl
 	taskRef := util.GetOptionValue(args.Options, "taskref")
 	desc := util.GetOptionValue(args.Options, "desc")
 
-	currentTask, currentTaskError := util.DBGetTask(currentProject.ID, taskRef)
+	currentTask, currentTaskError := DB.DBGetTask(currentProject.ID, taskRef)
 
 	if currentTask == nil || currentTaskError != nil {
 		return util.CreateHandleReport(false, "failed to get task, check your task_ref!")
 	}
 
-	newProgress, newProgressError := util.DBCreateProgress(currentTask.ID, fmt.Sprintf("Progress Update (%s): %s", time.Now().Format(time.RFC1123), desc), false)
+	newProgress, newProgressError := DB.DBCreateProgress(currentTask.ID, fmt.Sprintf("Progress Update (%s): %s", time.Now().Format(time.RFC1123), desc), false)
 	if newProgress == nil || newProgressError != nil {
 		return util.CreateHandleReport(false, "something went wrong on our end :/")
 	}
