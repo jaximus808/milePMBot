@@ -312,3 +312,13 @@ func (s SupaDB) DBDeleteRole(roleId int) error {
 
 	return nil
 }
+
+func (s SupaDB) DBDeleteProject(projectId int) error {
+	_, _, err := supabaseutil.Client.From("Projects").Delete("*", "").Eq("id", strconv.Itoa(projectId)).Execute()
+	if err != nil {
+
+		return err
+	}
+
+	return nil
+}

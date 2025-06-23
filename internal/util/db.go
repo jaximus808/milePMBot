@@ -48,6 +48,8 @@ type DBClient interface {
 
 	DBDeleteRole(roleId int) error
 
+	DBDeleteProject(projectId int) error
+
 	// milestones
 
 	DBCreateMilestone(projectId int, msName string, msDeadline *time.Time, msDes string) (*Milestone, error)

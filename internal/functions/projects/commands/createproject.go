@@ -62,11 +62,13 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 
 	milestone, msError := DB.DBCreateMilestone(project.ID, msName, &msDate, msDesc)
 	if msError != nil || milestone == nil {
+		DB.DBDeleteProject(project.ID)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
 	userRole, roleError := DB.DBCreateRole(project.ID, userId, int(util.OwnerRole))
 	if roleError != nil || userRole == nil {
+		DB.DBDeleteProject(project.ID)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 	//I NEEED TO ADD SOME TIME OF FAILURE ROLLBACK
@@ -79,6 +81,10 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 	}
 	updatedProject, updateProjectError := DB.DBUpdateCurrentMilestone(project.ID, milestone.ID)
 	if updateProjectError != nil || updatedProject == nil {
+		// roll back to delete incomplete project
+		// roll backs will delete all previous created rows due to cascade
+		DB.DBDeleteProject(project.ID)
+
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
