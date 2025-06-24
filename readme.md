@@ -8,12 +8,21 @@ This Discord bot helps manage projects, milestones, and tasks within your Discor
 
 With text-commands, updating and tracking progress is much quicker compared to drag and drop. No more navigating confusing UI, just run simple commands that are easier to navigate thanks to Discords API. 
 
+## Current Stage:
+
+The bot right now is deployed and has passed smoked testing from local usuage, but no other extensive user tests have been completed yet. 
+
+Please be aware that the bot is still in active devolpment, and if bugs occur please raise an issue or reach out to me. I'll be happy to take a look and fix whatever problems arise from the bot.
+
 ## Concepts and Usuage
 
 MilestonePM works by mapping project to discord server categories and its channels. This means that any channel within an active project's category can run commands to interact with that project
 
 ![alt text](https://github.com/jaximus808/milePMBot/blob/main/assets/milestonePMReference.png "Visual Category Pic")
 
+You can invite the bot to your server here with this link!
+
+[Bot Invite Link](https://discord.com/oauth2/authorize?client_id=1378213203829592085&scope=bot&permissions=275146599504)
 
 Within a project, there are 2 main terms
 
