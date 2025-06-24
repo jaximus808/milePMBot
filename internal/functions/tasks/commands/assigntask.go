@@ -51,6 +51,7 @@ func AssignTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Applic
 	userId, idError := strconv.Atoi(msgInstance.Member.User.ID)
 	assignedUserIdInt, idAssignError := strconv.Atoi(assignedUserId)
 	if idError != nil || idAssignError != nil {
+		util.ReportDiscordBotError(idError)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 

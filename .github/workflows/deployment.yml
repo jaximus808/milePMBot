@@ -1,0 +1,43 @@
+# This workflow will build a golang project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
+
+name: deployment
+
+on:
+  push:
+    branches: [ "main" ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.23'
+
+    - name: Build
+      run: go build -o dist/milePMBot
+
+    - name: Copy file to server
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.VULTR_SERVER }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_KEY }}
+        source: "dist/milePMBot"
+        target: "dist"
+        strip_components: 1
+        rm: true
+        
+    - name: Install binary & configuration
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.VULTR_SERVER }}
+        username: ${{ secrets.SSH_USER }}
+        key: ${{ secrets.SSH_KEY }}
+        script: |
+          sudo service milePMBot stop
+          sudo mv dist/milePMBot /usr/local/bin/milePMBot
+          sudo service milePMBot start

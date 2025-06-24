@@ -14,10 +14,8 @@ import (
 )
 
 func main() {
-	envErr := godotenv.Load(".env")
-	if envErr != nil {
-		fmt.Printf("No env file to be found")
-	}
+	err := godotenv.Load(".env")
+
 	supabaseErr := supabaseutil.InitializeSupabase()
 
 	if supabaseErr != nil {
@@ -39,8 +37,8 @@ func main() {
 	}
 	defer discord.DiscordSession.Close()
 
-	integration.ClearCommands(discord.DiscordSession, "738509536520044575")
-	integration.RegisterCommands(discord.DiscordSession, "738509536520044575")
+	integration.ClearCommands(discord.DiscordSession, os.Getenv("DEPLOY_GUILD"))
+	integration.RegisterCommands(discord.DiscordSession, os.Getenv("DEPLOY_GUILD"), os.Getenv("ADMIN_GUILD"))
 
 	// start the cron job
 	s, err := jobs.StartSprintUpdateJob()
@@ -59,6 +57,8 @@ func main() {
 	}
 
 	log.Println("Bot and Job Online")
+	discord.DiscordSession.ChannelMessageSend(os.Getenv("OUTPUT_LOG_CHANNEL"), "🚀 MilestonePM bot is online")
+
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt)
 	<-stop

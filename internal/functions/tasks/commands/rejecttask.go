@@ -43,11 +43,13 @@ func RejectTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Applic
 	}
 	updatedTask, updatedTaskError := DB.DBUpdateTaskRecentProgress(currentTask.ID, false)
 	if updatedTaskError != nil || updatedTask == nil {
+		util.ReportDiscordBotError(updatedTaskError)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
 	newProgress, newProgressError := DB.DBCreateProgress(currentTask.ID, fmt.Sprintf("Not Approved: %s", desc), false)
 	if newProgress == nil || newProgressError != nil {
+		util.ReportDiscordBotError(newProgressError)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 

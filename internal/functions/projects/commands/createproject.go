@@ -12,7 +12,6 @@ import (
 
 func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption, DB util.DBClient) *util.HandleReport {
 
-	// TODO: MUST ADD A CHECK THAT THERE IS NO ALREADY ACTIVE PROJECT
 	if msgInstance.GuildID == "" {
 		return util.CreateHandleReport(false, output.NOT_A_CHANNEL)
 	}
@@ -49,12 +48,14 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 	guildId, guildIdError := strconv.Atoi(channel.GuildID)
 
 	if userIdError != nil || channelIdError != nil || parentIdError != nil || guildIdError != nil {
+		util.ReportDiscordBotError(err)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
 	project, insertErr := DB.DBCreateProject(guildId, parentId, channelId, "new project!")
 
 	if insertErr != nil || project == nil {
+		util.ReportDiscordBotError(err)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
@@ -63,12 +64,14 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 	milestone, msError := DB.DBCreateMilestone(project.ID, msName, &msDate, msDesc)
 	if msError != nil || milestone == nil {
 		DB.DBDeleteProject(project.ID)
+		util.ReportDiscordBotError(err)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
 	userRole, roleError := DB.DBCreateRole(project.ID, userId, int(util.OwnerRole))
 	if roleError != nil || userRole == nil {
 		DB.DBDeleteProject(project.ID)
+		util.ReportDiscordBotError(err)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 	//I NEEED TO ADD SOME TIME OF FAILURE ROLLBACK
@@ -77,6 +80,7 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 	activeProject, activeProjctError := DB.DBCreateActiveProject(guildId, parentId, project.ID)
 
 	if activeProjctError != nil || activeProject == nil {
+		util.ReportDiscordBotError(err)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 	updatedProject, updateProjectError := DB.DBUpdateCurrentMilestone(project.ID, milestone.ID)
@@ -85,13 +89,13 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 		// roll backs will delete all previous created rows due to cascade
 		DB.DBDeleteProject(project.ID)
 
+		util.ReportDiscordBotError(err)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
-	//CREATE A REF!!!
-
 	projectRefUpdate, projectRefUpdateError := DB.DBUpdateProjectRef(project.ID)
 	if projectRefUpdateError != nil || projectRefUpdate == nil {
+		util.ReportDiscordBotError(err)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 

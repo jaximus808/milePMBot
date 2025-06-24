@@ -23,6 +23,7 @@ func ListMilestones(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 	milestoneList, milestoneListError := DB.DBGetMilestoneListDescending(currentProject.ID)
 
 	if milestoneListError != nil || milestoneList == nil {
+		util.ReportDiscordBotError(milestoneListError)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 

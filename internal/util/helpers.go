@@ -2,6 +2,7 @@ package util
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -258,4 +259,8 @@ func SetUpProjectInfo(msgInstance *discordgo.InteractionCreate, DB DBClient) (*P
 		return nil, CreateHandleReport(false, "failed to get active project")
 	}
 	return project, nil
+}
+
+func ReportDiscordBotError(err error) {
+	discord.DiscordSession.ChannelMessageSend(os.Getenv("OUTPUT_LOG_CHANNEL"), fmt.Sprintf("‼️ <@413398657791164416> Server failure reported!\n Error: %s", err.Error()))
 }

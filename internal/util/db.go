@@ -40,6 +40,8 @@ type DBClient interface {
 
 	DBUpdateProjectPings(projectId int, enabled bool) (*Project, error)
 
+	DBGetAllProjects() (*([]Project), error)
+
 	DBGetAllPingProjects() (*([]Project), error)
 
 	DBCreateRole(projectId int, userId int, roleLevel int) (*Role, error)

@@ -53,6 +53,7 @@ func MoveProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Appli
 	guildId, guildIdError := strconv.Atoi(channel.GuildID)
 
 	if channelIdError != nil || parentIdError != nil || guildIdError != nil {
+		util.ReportDiscordBotError(err)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
@@ -63,6 +64,7 @@ func MoveProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Appli
 	}
 	updateProject, updateProjectError := DB.DBUpdateProjectOutputChannel(selectProject.ID, channelId)
 	if updateProjectError != nil || updateProject == nil {
+		util.ReportDiscordBotError(err)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 

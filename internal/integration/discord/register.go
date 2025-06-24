@@ -6,7 +6,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-func RegisterCommands(s *discordgo.Session, guildId string) {
+func RegisterCommands(s *discordgo.Session, guildId string, opGuildId string) {
 
 	commands := []*discordgo.ApplicationCommand{
 		{
@@ -330,6 +330,15 @@ func RegisterCommands(s *discordgo.Session, guildId string) {
 		if err != nil {
 			log.Printf(" error %v", err)
 		}
+	}
+
+	_, err := s.ApplicationCommandCreate(s.State.User.ID, opGuildId, &discordgo.ApplicationCommand{
+		Name:        "deploywarn",
+		Description: "warns all active projects that the bot will be down for 5 minutes for a deployment",
+	})
+
+	if err != nil {
+		log.Printf(" error %v", err)
 	}
 }
 

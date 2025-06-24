@@ -49,11 +49,13 @@ func CreateMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.A
 
 	milestone, msError := DB.DBCreateMilestone(currentProject.ID, msName, &msDate, msDesc)
 	if msError != nil || milestone == nil {
+		util.ReportDiscordBotError(msError)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 	// create Ref
 	milestoneRef, refError := DB.DBUpdateMilestoneRef(milestone.ID, *currentProject.ProjectRef)
 	if refError != nil || milestoneRef == nil {
+		util.ReportDiscordBotError(refError)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 	return util.CreateHandleReportAndOutput(true,

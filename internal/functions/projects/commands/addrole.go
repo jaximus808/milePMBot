@@ -36,6 +36,7 @@ func AddRole(msgInstance *discordgo.InteractionCreate, args *discordgo.Applicati
 
 	userIdNum, idError := strconv.Atoi(userId)
 	if idError != nil {
+		util.ReportDiscordBotError(idError)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
@@ -60,6 +61,7 @@ func AddRole(msgInstance *discordgo.InteractionCreate, args *discordgo.Applicati
 		}
 		userRole, roleError := DB.DBCreateRole(currentProject.ID, userIdNum, int(roleInt))
 		if roleError != nil || userRole == nil {
+			util.ReportDiscordBotError(roleError)
 			return util.CreateHandleReport(false, output.FAILURE_SERVER)
 		}
 		return util.CreateHandleReport(true, fmt.Sprintf("Success! <@%s> has been given the role: **%s**", userId, role))
@@ -74,9 +76,9 @@ func AddRole(msgInstance *discordgo.InteractionCreate, args *discordgo.Applicati
 			return util.CreateHandleReport(false, "❌ You don't have the valid permission for this command")
 		}
 
-		// do later
 		deleteError := DB.DBDeleteRole(roleExist.ID)
 		if deleteError != nil {
+			util.ReportDiscordBotError(deleteError)
 			return util.CreateHandleReport(false, output.FAILURE_SERVER)
 		}
 

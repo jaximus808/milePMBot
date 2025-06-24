@@ -19,6 +19,7 @@ func ProjectInfo(msgInstance *discordgo.InteractionCreate, args *discordgo.Appli
 	milestone, milestoneErr := DB.DBGetMilestoneWithId(*currentProject.CurrentMID)
 
 	if milestoneErr != nil || milestone == nil {
+		util.ReportDiscordBotError(milestoneErr)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 

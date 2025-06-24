@@ -65,6 +65,7 @@ func SettingProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 		updatedProject, errUpdate := DB.DBUpdateProjectOutputChannel(currentProject.ID, outChannelId)
 
 		if errUpdate != nil || updatedProject == nil {
+			util.ReportDiscordBotError(errUpdate)
 			return util.CreateHandleReport(false, output.FAILURE_SERVER)
 		}
 
@@ -83,6 +84,7 @@ func SettingProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 		updatedProject, errUpdate := DB.DBUpdateProjectDescription(currentProject.ID, value)
 
 		if errUpdate != nil || updatedProject == nil {
+			util.ReportDiscordBotError(errUpdate)
 			return util.CreateHandleReport(false, output.FAILURE_SERVER)
 		}
 
@@ -101,6 +103,7 @@ func SettingProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 		updatedProject, errUpdate := DB.DBUpdateProjectSprintDesc(currentProject.ID, value)
 
 		if errUpdate != nil || updatedProject == nil {
+			util.ReportDiscordBotError(errUpdate)
 			return util.CreateHandleReport(false, output.FAILURE_SERVER)
 		}
 
@@ -131,6 +134,7 @@ func SettingProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 		updatedProject, errUpdate := DB.DBUpdateProjectSprints(currentProject.ID, toggledSprint)
 
 		if errUpdate != nil || updatedProject == nil {
+			util.ReportDiscordBotError(errUpdate)
 			return util.CreateHandleReport(false, output.FAILURE_SERVER)
 		}
 
@@ -154,6 +158,7 @@ func SettingProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 		updatedProject, errUpdate := DB.DBUpdateProjectSprintDuration(currentProject.ID, sprintDuration)
 
 		if errUpdate != nil || updatedProject == nil {
+			util.ReportDiscordBotError(errUpdate)
 			return util.CreateHandleReport(false, output.FAILURE_SERVER)
 		}
 
@@ -184,6 +189,7 @@ func SettingProject(msgInstance *discordgo.InteractionCreate, args *discordgo.Ap
 		updatedProject, errUpdate := DB.DBUpdateProjectPings(currentProject.ID, toggledSprint)
 
 		if errUpdate != nil || updatedProject == nil {
+			util.ReportDiscordBotError(errUpdate)
 			return util.CreateHandleReport(false, output.FAILURE_SERVER)
 		}
 

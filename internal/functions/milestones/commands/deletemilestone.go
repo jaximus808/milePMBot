@@ -38,6 +38,7 @@ func DeleteMilestone(msgInstance *discordgo.InteractionCreate, args *discordgo.A
 	}
 	deleteErr := DB.DBDeleteMilestone(milestone.ID)
 	if deleteErr != nil {
+		util.ReportDiscordBotError(deleteErr)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 

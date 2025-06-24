@@ -30,6 +30,7 @@ func CompleteTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appl
 	userId, err := strconv.Atoi(msgInstance.Member.User.ID)
 
 	if err != nil {
+		util.ReportDiscordBotError(err)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
@@ -42,11 +43,13 @@ func CompleteTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appl
 	newProgress, newProgressError := DB.DBCreateProgress(currentTask.ID, desc, true)
 
 	if newProgressError != nil || newProgress == nil {
+		util.ReportDiscordBotError(err)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 	updatedTask, updatedTaskError := DB.DBUpdateTaskRecentProgress(currentTask.ID, true)
 
 	if updatedTaskError != nil || updatedTask == nil {
+		util.ReportDiscordBotError(err)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
