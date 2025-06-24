@@ -312,18 +312,18 @@ func RegisterCommands(s *discordgo.Session, guildId string, opGuildId string) {
 				},
 			},
 		},
-		{
-			Name:        "help",
-			Description: "manual for MilestonePM Bot",
-			Options: []*discordgo.ApplicationCommandOption{
-				{
-					Name:         "command",
-					Description:  "create a milestone",
-					Type:         discordgo.ApplicationCommandOptionString,
-					Autocomplete: true,
-				},
-			},
-		},
+		// {
+		// 	Name:        "help",
+		// 	Description: "manual for MilestonePM Bot",
+		// 	Options: []*discordgo.ApplicationCommandOption{
+		// 		{
+		// 			Name:         "command",
+		// 			Description:  "create a milestone",
+		// 			Type:         discordgo.ApplicationCommandOptionString,
+		// 			Autocomplete: true,
+		// 		},
+		// 	},
+		// },
 	}
 	for _, cmd := range commands {
 		_, err := s.ApplicationCommandCreate(s.State.User.ID, guildId, cmd)
@@ -353,7 +353,7 @@ func ClearCommands(s *discordgo.Session, guildId string) {
 	cmds, err := s.ApplicationCommands(s.State.User.ID, guildId)
 
 	if err != nil {
-		log.Printf("Fialed to fetch existing commands: %v", err)
+		log.Printf("Failed to fetch existing commands: %v", err)
 		return
 	}
 	for _, cmd := range cmds {

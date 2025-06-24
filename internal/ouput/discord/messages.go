@@ -53,13 +53,22 @@ ex: /help cmd:project - gives information about project commands
 
 /project - handles projects settings and control (ADMIN ONLY)
 
+` + "```/help cmd:'Project Commands'```" + ` for more info
+
 ## Milestone Commands
 
 /milestone - handles the creation and movement of a milestone for a current project (ADMIN + LEADS ONLY)
 
+
+` + "```/help cmd:'Milestone Commands'```" + ` for more info
+
 ## Task Commands
 
 /task - handle creating, assigning, progress, completing, and approvals for tasks of a milestone 
+
+
+` + "```/help cmd:'Task Commands'```" + ` for more info
+
 `
 
 // - ex: /project start msname:firstmilestone msdate:07/20/2026 msdesc:firstproject
