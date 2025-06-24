@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: VULTR_SERVER
     steps:
     - uses: actions/checkout@v4
 
@@ -18,7 +19,7 @@ jobs:
         go-version: '1.23'
 
     - name: Build
-      run: go build -o dist/milePMBot
+      run: go build -o dist/milepmbot
 
     - name: Copy file to server
       uses: appleboy/scp-action@master
@@ -26,11 +27,11 @@ jobs:
         host: ${{ secrets.VULTR_SERVER }}
         username: ${{ secrets.SSH_USER }}
         key: ${{ secrets.SSH_KEY }}
-        source: "dist/milePMBot"
+        source: "dist/milepmbot"
         target: "dist"
         strip_components: 1
         rm: true
-        
+
     - name: Install binary & configuration
       uses: appleboy/ssh-action@master
       with:
@@ -38,6 +39,7 @@ jobs:
         username: ${{ secrets.SSH_USER }}
         key: ${{ secrets.SSH_KEY }}
         script: |
-          sudo service milePMBot stop
-          sudo mv dist/milePMBot /usr/local/bin/milePMBot
-          sudo service milePMBot start
+          sudo service milepmbot stop || true
+          sudo mv dist/milepmbot /usr/local/bin/milepmbot
+          sudo chmod +x /usr/local/bin/milepmbot
+          sudo service milepmbot start
