@@ -30,6 +30,7 @@ func WeeklyRemindProjects(DB util.DBClient) {
 
 	log.Printf("finished weekly remind")
 }
+
 func isAtLeastNWeeksAgo(t time.Time, n int) bool {
 	// time.Since(t) is the same as time.Now().Sub(t)
 	return time.Since(t) >= time.Duration(n)*7*24*time.Hour

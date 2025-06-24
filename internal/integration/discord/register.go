@@ -336,6 +336,13 @@ func RegisterCommands(s *discordgo.Session, guildId string, opGuildId string) {
 		Name:        "deploywarn",
 		Description: "warns all active projects that the bot will be down for 5 minutes for a deployment",
 	})
+	if err != nil {
+		log.Printf(" error %v", err)
+	}
+	_, err = s.ApplicationCommandCreate(s.State.User.ID, opGuildId, &discordgo.ApplicationCommand{
+		Name:        "hardstop",
+		Description: "hardstops the serivce",
+	})
 
 	if err != nil {
 		log.Printf(" error %v", err)

@@ -218,6 +218,7 @@ func commandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	var exists bool
 
 	baseCommand := data.Name
+
 	var subCommand *discordgo.ApplicationCommandInteractionDataOption
 
 	if len(data.Options) == 0 {
