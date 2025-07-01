@@ -61,7 +61,7 @@ func ParseTaskListWeeklyWithPing(tasks *[]Task) *TaskReport {
 
 			taskReport.InReview = append(
 				taskReport.InReview,
-				fmt.Sprintf("> 📌 **Task Name:** %s\n> **Task Ref:** %s\n> Completed By: <%d>\n> Waiting for Review By: <%d>",
+				fmt.Sprintf("> 📌 **Task Name:** %s\n> **Task Ref:** %s\n> Completed By: <@%d>\n> Waiting for Review By: <@%d>",
 					*task.TaskName,
 					*task.TaskRef,
 					*task.AssignedID,
@@ -72,7 +72,7 @@ func ParseTaskListWeeklyWithPing(tasks *[]Task) *TaskReport {
 
 			taskReport.InProgress = append(
 				taskReport.InProgress,
-				fmt.Sprintf("> 📌 **Task Name:** %s\n> **Task Ref:** %s\n> Assigned To: <%d>\n> Assigned By: <%d>",
+				fmt.Sprintf("> 📌 **Task Name:** %s\n> **Task Ref:** %s\n> Assigned To: <@%d>\n> Assigned By: <@%d>",
 					*task.TaskName,
 					*task.TaskRef,
 					*task.AssignedID,
