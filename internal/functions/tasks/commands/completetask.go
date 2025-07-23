@@ -65,7 +65,7 @@ func CompleteTask(msgInstance *discordgo.InteractionCreate, args *discordgo.Appl
 				{Name: "Task", Value: *updatedTask.TaskName, Inline: false},
 				{Name: "Task Ref", Value: *updatedTask.TaskRef, Inline: false},
 				{Name: "Notes", Value: desc, Inline: false},
-				{Name: "For Assigner", Value: fmt.Sprintf("<%d> Review this work and approve/disapprove with /task [approve/disapprove]", *updatedTask.AssignerID), Inline: false},
+				{Name: "For Assigner", Value: fmt.Sprintf("<@%d> Review this work and approve/disapprove with /task [approve/disapprove]", *updatedTask.AssignerID), Inline: false},
 			},
 			Timestamp: time.Now().Format(time.RFC3339),
 		},
