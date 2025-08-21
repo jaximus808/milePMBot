@@ -41,9 +41,11 @@ type MilestoneReport struct {
 func (HR *HandleReport) GetInfo() string {
 	return HR.info
 }
+
 func (HR *HandleReport) GetSuccess() bool {
 	return HR.success
 }
+
 func (HR *HandleReport) GetTime() time.Time {
 	return HR.timestamp
 }
@@ -51,12 +53,15 @@ func (HR *HandleReport) GetTime() time.Time {
 func (HR *HandleReport) NeedsOutput() bool {
 	return HR.outputNeed
 }
+
 func (HR *HandleReport) GetOutputMsg() *discordgo.MessageEmbed {
 	return HR.outemdded
 }
+
 func (HR *HandleReport) GetOutputId() string {
 	return HR.outputId
 }
+
 func CreateHandleReport(success bool, info string) *HandleReport {
 	return &HandleReport{
 		success:    success,
@@ -69,7 +74,6 @@ func CreateHandleReport(success bool, info string) *HandleReport {
 }
 
 func CheckDiscordPerm(userId string, guildId string, perms int64) bool {
-
 	guild, err := discord.DiscordSession.State.Guild(guildId)
 	if err != nil {
 		return false
@@ -240,3 +244,22 @@ type TaskInsert struct {
 }
 
 type TaskUpdate = TaskInsert
+
+// UserAccess
+type UserAccess struct {
+	CreatedAt  time.Time `json:"created_at"`
+	ID         int       `json:"id"`
+	SupabaseId *int      `json:"user_id"`
+	ProjectID  *int      `json:"project_id"`
+	DiscordId  *int      `json:"discord_id"`
+}
+
+type UserAccessInsert struct {
+	CreatedAt  time.Time `json:"created_at,omitempty"`
+	ID         int       `json:"id,omitempty"`
+	SupabaseId *int      `json:"user_id,omitempty"`
+	ProjectID  *int      `json:"project_id,omitempty"`
+	DiscordId  *int      `json:"discord_id,omitempty"`
+}
+
+type UserAccessUpdate = UserAccessInsert

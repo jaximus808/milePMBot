@@ -20,7 +20,6 @@ func ptrInt(i int) *int          { return &i }
 
 // milestones is assumed to be inorder
 func ParseMilestoneList(milestones *[]Milestone, currentMid int) *MilestoneReport {
-
 	milestoneMap := &MilestoneReport{}
 
 	upcomingParsing := true
@@ -44,19 +43,15 @@ func ParseMilestoneList(milestones *[]Milestone, currentMid int) *MilestoneRepor
 				)
 			}
 		}
-
 	}
 
 	return milestoneMap
-
 }
 
 func ParseTaskListWeeklyWithPing(tasks *[]Task) *TaskReport {
-
 	taskReport := &TaskReport{}
 
 	for _, task := range *tasks {
-
 		if *task.Completed { // task is marked compelete by the user and ready for review
 
 			taskReport.InReview = append(
@@ -82,14 +77,12 @@ func ParseTaskListWeeklyWithPing(tasks *[]Task) *TaskReport {
 		}
 	}
 	return taskReport
-
 }
-func ParseTaskListWeekly(tasks *[]Task, guildId string) *TaskReport {
 
+func ParseTaskListWeekly(tasks *[]Task, guildId string) *TaskReport {
 	taskReport := &TaskReport{}
 
 	for _, task := range *tasks {
-
 		if *task.Completed { // task is marked compelete by the user and ready for review
 
 			assignedMemberName := GetUserGuildNickname(guildId, strconv.Itoa(*task.AssignedID))
@@ -121,12 +114,10 @@ func ParseTaskListWeekly(tasks *[]Task, guildId string) *TaskReport {
 		}
 	}
 	return taskReport
-
 }
 
 // for time must make some service to convert to the requested timezone, or the timezone the bot is made
 func ParseTaskList(tasks *[]Task, guildId string) *TaskReport {
-
 	taskReport := &TaskReport{}
 
 	for _, task := range *tasks {
@@ -193,7 +184,6 @@ func GetUserGuildNickname(guildId string, userId string) string {
 		return ""
 	}
 	return member.Nick
-
 }
 
 func ValidTaskQuery(s string) bool {
@@ -244,7 +234,6 @@ func SetUpProjectInfo(msgInstance *discordgo.InteractionCreate, DB DBClient) (*P
 	}
 
 	channel, err := discord.DiscordSession.Channel(msgInstance.ChannelID)
-
 	if err != nil {
 		return nil, CreateHandleReport(false, "channel failed!")
 	}
@@ -259,6 +248,48 @@ func SetUpProjectInfo(msgInstance *discordgo.InteractionCreate, DB DBClient) (*P
 		return nil, CreateHandleReport(false, "failed to get active project")
 	}
 	return project, nil
+}
+
+func CreateAccessRows(msgInstance *discordgo.InteractionCreate, DB DBClient, channel *discordgo.Channel, projectID int) *HandleReport {
+	s := discord.DiscordSession
+
+	guild, guildErr := discord.DiscordSession.Guild(msgInstance.GuildID)
+
+	// there should be suffucient checks before this happens but using this to prevent a panic
+	if guildErr != nil {
+		return CreateHandleReport(false, "No guold Id")
+	}
+
+	// gets the first channel that is both text and is within the parent id
+	var targetChannel *discordgo.Channel
+	for _, ch := range guild.Channels {
+		if ch.ParentID == channel.ParentID && ch.Type == discordgo.ChannelTypeGuildText {
+			targetChannel = ch
+			break
+		}
+	}
+
+	if targetChannel == nil {
+		return CreateHandleReport(false, "Not channels could be found in the projects category")
+	}
+
+	// we are assuming the discord server will have less than 1000 members, this is a low prior to fix for now, but a future fix if scale is needed
+
+	members, err := s.GuildMembers(msgInstance.GuildID, "", 1000)
+	if err != nil {
+		return CreateHandleReport(false, err.Error())
+	}
+	var discordIDs []string
+	for _, member := range members {
+		// We only care about members who can actually view the channel.
+		perms, _ := s.State.UserChannelPermissions(member.User.ID, targetChannel.ID)
+		if perms&discordgo.PermissionViewChannel != 0 {
+			discordIDs = append(discordIDs, member.User.ID)
+		}
+	}
+
+	userAccesses, report := DB.GetUserAccessExists(discordIDs)
+	return nil
 }
 
 func ReportDiscordBotError(err error) {
