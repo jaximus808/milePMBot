@@ -262,5 +262,9 @@ func SetUpProjectInfo(msgInstance *discordgo.InteractionCreate, DB DBClient) (*P
 }
 
 func ReportDiscordBotError(err error) {
-	discord.DiscordSession.ChannelMessageSend(os.Getenv("OUTPUT_LOG_CHANNEL"), fmt.Sprintf("‼️ <@413398657791164416> Server failure reported!\n Error: %s", err.Error()))
+	if err != nil {
+		discord.DiscordSession.ChannelMessageSend(os.Getenv("OUTPUT_LOG_CHANNEL"), fmt.Sprintf("‼️ <@413398657791164416> Server failure reported!\n Error: %s", err.Error()))
+	} else {
+		discord.DiscordSession.ChannelMessageSend(os.Getenv("OUTPUT_LOG_CHANNEL"), fmt.Sprintf("‼️ <@413398657791164416> Server failure reported!\n Error: %s", "Something went wrong!"))
+	}
 }

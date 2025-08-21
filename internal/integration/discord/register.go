@@ -312,18 +312,18 @@ func RegisterCommands(s *discordgo.Session, guildId string, opGuildId string) {
 				},
 			},
 		},
-		// {
-		// 	Name:        "help",
-		// 	Description: "manual for MilestonePM Bot",
-		// 	Options: []*discordgo.ApplicationCommandOption{
-		// 		{
-		// 			Name:         "command",
-		// 			Description:  "create a milestone",
-		// 			Type:         discordgo.ApplicationCommandOptionString,
-		// 			Autocomplete: true,
-		// 		},
-		// 	},
-		// },
+		{
+			Name:        "help",
+			Description: "manual for MilestonePM Bot",
+			Options: []*discordgo.ApplicationCommandOption{
+				{
+					Name:         "command",
+					Description:  "specific help for a command",
+					Type:         discordgo.ApplicationCommandOptionString,
+					Autocomplete: true,
+				},
+			},
+		},
 	}
 	for _, cmd := range commands {
 		_, err := s.ApplicationCommandCreate(s.State.User.ID, guildId, cmd)
