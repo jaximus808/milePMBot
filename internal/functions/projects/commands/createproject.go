@@ -55,7 +55,7 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 	project, insertErr := DB.DBCreateProject(guildId, parentId, channelId, "new project!")
 
 	if insertErr != nil || project == nil {
-		util.ReportDiscordBotError(err)
+		util.ReportDiscordBotError(insertErr)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
@@ -64,14 +64,14 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 	milestone, msError := DB.DBCreateMilestone(project.ID, msName, &msDate, msDesc)
 	if msError != nil || milestone == nil {
 		DB.DBDeleteProject(project.ID)
-		util.ReportDiscordBotError(err)
+		util.ReportDiscordBotError(msError)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
 	userRole, roleError := DB.DBCreateRole(project.ID, userId, int(util.OwnerRole))
 	if roleError != nil || userRole == nil {
 		DB.DBDeleteProject(project.ID)
-		util.ReportDiscordBotError(err)
+		util.ReportDiscordBotError(roleError)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 	//I NEEED TO ADD SOME TIME OF FAILURE ROLLBACK
@@ -80,7 +80,7 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 	activeProject, activeProjctError := DB.DBCreateActiveProject(guildId, parentId, project.ID)
 
 	if activeProjctError != nil || activeProject == nil {
-		util.ReportDiscordBotError(err)
+		util.ReportDiscordBotError(activeProjctError)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 	updatedProject, updateProjectError := DB.DBUpdateCurrentMilestone(project.ID, milestone.ID)
@@ -95,7 +95,7 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 
 	projectRefUpdate, projectRefUpdateError := DB.DBUpdateProjectRef(project.ID)
 	if projectRefUpdateError != nil || projectRefUpdate == nil {
-		util.ReportDiscordBotError(err)
+		util.ReportDiscordBotError(projectRefUpdateError)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
 
