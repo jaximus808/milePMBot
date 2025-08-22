@@ -3,7 +3,6 @@ package util
 import "time"
 
 type DBClient interface {
-
 	// active project table function
 
 	DBCreateActiveProject(guildId int, pchannelId int, projectId int) (*ActiveProject, error)
@@ -100,4 +99,16 @@ type DBClient interface {
 	DBGetTasksAndSpecifyDC(discordId string, taskRefQuery string, isAssigner bool, projectId int, done bool, complete bool) (*[]Task, error)
 
 	DBCreateProgress(task_id int, desc string, completed bool) (*Progress, error)
+
+	// User Access
+
+	DBInsertUserAccess(userAccessRows []*UserAccessInsert) error
+
+	// User Profile Stuff
+
+	DBGetUserProfilesExists(discordIds []string) (*[]UserProfile, error)
+
+	// Pending Access
+
+	DBInsertPendingAccess(pendingAccessRows []*PendingAccessInsert) error
 }

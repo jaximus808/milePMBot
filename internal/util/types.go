@@ -249,17 +249,49 @@ type TaskUpdate = TaskInsert
 type UserAccess struct {
 	CreatedAt  time.Time `json:"created_at"`
 	ID         int       `json:"id"`
-	SupabaseId *int      `json:"user_id"`
+	SupabaseID *int      `json:"user_id"`
 	ProjectID  *int      `json:"project_id"`
-	DiscordId  *int      `json:"discord_id"`
 }
 
 type UserAccessInsert struct {
 	CreatedAt  time.Time `json:"created_at,omitempty"`
 	ID         int       `json:"id,omitempty"`
-	SupabaseId *int      `json:"user_id,omitempty"`
+	SupabaseID *int      `json:"user_id,omitempty"`
 	ProjectID  *int      `json:"project_id,omitempty"`
-	DiscordId  *int      `json:"discord_id,omitempty"`
 }
 
 type UserAccessUpdate = UserAccessInsert
+
+// Profiles
+type UserProfile struct {
+	CreatedAt  time.Time `json:"created_at"`
+	ID         int       `json:"id"`
+	SupabaseID *int      `json:"user_id"`
+	DiscordID  *int      `json:"discord_id"`
+}
+
+type UserProfileInsert struct {
+	CreatedAt  time.Time `json:"created_at,omitempty"`
+	ID         int       `json:"id,omitempty"`
+	SupabaseID *int      `json:"user_id,omitempty"`
+	DiscordID  *int      `json:"discord_id,omitempty"`
+}
+
+type UserProfileUpdate = UserProfileInsert
+
+// PendingAccess
+type PendingAccess struct {
+	CreatedAt time.Time `json:"created_at"`
+	ID        int       `json:"id"`
+	ProjectID *int      `json:"project_id"`
+	DiscordID *int      `json:"discord_id"`
+}
+
+type PendingAccessInsert struct {
+	CreatedAt time.Time `json:"created_at,omitempty"`
+	ID        int       `json:"id,omitempty"`
+	ProjectID *int      `json:"project_id,omitempty"`
+	DiscordID *int      `json:"discord_id,omitempty"`
+}
+
+type PendingAccessUpdate = PendingAccessInsert

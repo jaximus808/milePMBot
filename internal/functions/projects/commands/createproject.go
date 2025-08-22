@@ -11,7 +11,6 @@ import (
 )
 
 func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption, DB util.DBClient) *util.HandleReport {
-
 	if msgInstance.GuildID == "" {
 		return util.CreateHandleReport(false, output.NOT_A_CHANNEL)
 	}
@@ -74,7 +73,7 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 		util.ReportDiscordBotError(roleError)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
-	//I NEEED TO ADD SOME TIME OF FAILURE ROLLBACK
+	// I NEEED TO ADD SOME TIME OF FAILURE ROLLBACK
 
 	// everything good, now assign this project as an active project
 	activeProject, activeProjctError := DB.DBCreateActiveProject(guildId, parentId, project.ID)
@@ -98,6 +97,9 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 		util.ReportDiscordBotError(projectRefUpdateError)
 		return util.CreateHandleReport(false, output.FAILURE_SERVER)
 	}
+
+	// now begin granting access to all users who can view this message
+	go util.CreateAccessRows(msgInstance, DB, channel, project.ID)
 
 	return util.CreateHandleReport(true, output.MakeSuccessCreateProject(*projectRefUpdate.ProjectRef))
 }

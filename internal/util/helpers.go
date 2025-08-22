@@ -287,9 +287,49 @@ func CreateAccessRows(msgInstance *discordgo.InteractionCreate, DB DBClient, cha
 			discordIDs = append(discordIDs, member.User.ID)
 		}
 	}
+	// this is SUPER wrong LOL
+	existingUserProfiles, err := DB.DBGetUserProfilesExists(discordIDs)
+	if err != nil {
+		return CreateHandleReport(false, err.Error())
+	}
+	// profiles alr exist
+	profileMap := make(map[string]int) // discordID -> supabaseUID
+	for _, p := range *existingUserProfiles {
+		profileMap[strconv.Itoa(*p.DiscordID)] = *p.SupabaseID
+	}
 
-	userAccesses, report := DB.GetUserAccessExists(discordIDs)
-	return nil
+	userAccesses := []*UserAccessInsert{}
+	newPendingAccess := []*PendingAccessInsert{}
+
+	for _, discordID := range discordIDs {
+		supaID, ok := profileMap[discordID]
+
+		if ok {
+			userAccesses = append(userAccesses, &UserAccessInsert{
+				SupabaseID: &supaID,
+				ProjectID:  &projectID,
+			})
+		} else {
+			discordIDNum, err := strconv.Atoi(discordID)
+			if err != nil {
+				return CreateHandleReport(false, err.Error())
+			}
+			newPendingAccess = append(newPendingAccess, &PendingAccessInsert{
+				DiscordID: &discordIDNum,
+				ProjectID: &projectID,
+			})
+		}
+	}
+	// now we will create the access and pending access, so when the user logs into supabase for the first time they are given access to the projects tehy dserve access to
+	err = DB.DBInsertUserAccess(userAccesses)
+	if err != nil {
+		return CreateHandleReport(false, err.Error())
+	}
+	err = DB.DBInsertPendingAccess(newPendingAccess)
+	if err != nil {
+		return CreateHandleReport(false, err.Error())
+	}
+	return CreateHandleReport(true, "ok")
 }
 
 func ReportDiscordBotError(err error) {
