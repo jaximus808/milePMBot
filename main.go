@@ -17,7 +17,6 @@ func main() {
 	err := godotenv.Load(".env")
 	if err != nil {
 		fmt.Print(err.Error())
-		return
 	}
 
 	supabaseErr := supabaseutil.InitializeSupabase()
