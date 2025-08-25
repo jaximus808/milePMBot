@@ -99,7 +99,12 @@ func CreateProject(msgInstance *discordgo.InteractionCreate, args *discordgo.App
 	}
 
 	// now begin granting access to all users who can view this message
-	go util.CreateAccessRows(msgInstance, DB, channel, project.ID)
+	go func(msgInstance *discordgo.InteractionCreate, DB util.DBClient, channel *discordgo.Channel, projectID int) {
+		report := util.CreateAccessRows(msgInstance, DB, channel, project.ID)
+		if !report.GetSuccess() {
+			util.ReportDiscordBotReport(report)
+		}
+	}(msgInstance, DB, channel, project.ID)
 
 	return util.CreateHandleReport(true, output.MakeSuccessCreateProject(*projectRefUpdate.ProjectRef))
 }

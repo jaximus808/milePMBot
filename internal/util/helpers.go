@@ -253,7 +253,7 @@ func SetUpProjectInfo(msgInstance *discordgo.InteractionCreate, DB DBClient) (*P
 func CreateAccessRows(msgInstance *discordgo.InteractionCreate, DB DBClient, channel *discordgo.Channel, projectID int) *HandleReport {
 	s := discord.DiscordSession
 
-	guild, guildErr := discord.DiscordSession.Guild(msgInstance.GuildID)
+	guildChannels, guildErr := discord.DiscordSession.GuildChannels(msgInstance.GuildID)
 
 	// there should be suffucient checks before this happens but using this to prevent a panic
 	if guildErr != nil {
@@ -262,7 +262,7 @@ func CreateAccessRows(msgInstance *discordgo.InteractionCreate, DB DBClient, cha
 
 	// gets the first channel that is both text and is within the parent id
 	var targetChannel *discordgo.Channel
-	for _, ch := range guild.Channels {
+	for _, ch := range guildChannels {
 		if ch.ParentID == channel.ParentID && ch.Type == discordgo.ChannelTypeGuildText {
 			targetChannel = ch
 			break
@@ -338,4 +338,8 @@ func ReportDiscordBotError(err error) {
 	} else {
 		discord.DiscordSession.ChannelMessageSend(os.Getenv("OUTPUT_LOG_CHANNEL"), fmt.Sprintf("‼️ <@413398657791164416> Server failure reported!\n Error: %s", "Something went wrong!"))
 	}
+}
+
+func ReportDiscordBotReport(report *HandleReport) {
+	discord.DiscordSession.ChannelMessageSend(os.Getenv("OUTPUT_LOG_CHANNEL"), fmt.Sprintf("‼️ <@413398657791164416> Server failure reported!\n Error: %s", report.GetInfo()))
 }

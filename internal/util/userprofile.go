@@ -8,7 +8,7 @@ import (
 
 func (s SupaDB) DBGetUserProfilesExists(discordIds []string) (*[]UserProfile, error) {
 	var userProfiles []UserProfile
-	res, _, err := supabaseutil.Client.From("UserProfile").Select("*", "", false).In("discord_id", discordIds).Execute()
+	res, _, err := supabaseutil.Client.From("UserProfiles").Select("*", "", false).In("discord_id", discordIds).Execute()
 	if err != nil {
 		return nil, err
 	}
