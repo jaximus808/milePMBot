@@ -7,7 +7,6 @@ import (
 )
 
 func RegisterCommands(s *discordgo.Session, guildId string, opGuildId string) {
-
 	commands := []*discordgo.ApplicationCommand{
 		{
 			Name:        "project",
@@ -29,7 +28,8 @@ func RegisterCommands(s *discordgo.Session, guildId string, opGuildId string) {
 							Name:        "msdate",
 							Description: "due date",
 							Required:    true,
-						}, {
+						},
+						{
 							Type:        discordgo.ApplicationCommandOptionString,
 							Name:        "desc",
 							Description: "description",
@@ -120,6 +120,11 @@ func RegisterCommands(s *discordgo.Session, guildId string, opGuildId string) {
 					Description: "Get info on a project",
 					Type:        discordgo.ApplicationCommandOptionSubCommand,
 				},
+				{
+					Name:        "viewupdate",
+					Description: "Updates the view access for the webview for this project",
+					Type:        discordgo.ApplicationCommandOptionSubCommand,
+				},
 			},
 		},
 		{
@@ -142,7 +147,8 @@ func RegisterCommands(s *discordgo.Session, guildId string, opGuildId string) {
 							Name:        "msdate",
 							Description: "due date",
 							Required:    true,
-						}, {
+						},
+						{
 							Type:        discordgo.ApplicationCommandOptionString,
 							Name:        "desc",
 							Description: "description",
@@ -162,7 +168,8 @@ func RegisterCommands(s *discordgo.Session, guildId string, opGuildId string) {
 							Required:    true,
 						},
 					},
-				}, {
+				},
+				{
 					Name:        "delete",
 					Description: "delete a milestone",
 					Type:        discordgo.ApplicationCommandOptionSubCommand,
@@ -185,7 +192,7 @@ func RegisterCommands(s *discordgo.Session, guildId string, opGuildId string) {
 		{
 			Name:        "task",
 			Description: "Manage a project's task",
-			//make a better name for this shit
+			// make a better name for this shit
 			Options: []*discordgo.ApplicationCommandOption{
 				{
 					Name:        "create",
@@ -343,7 +350,6 @@ func RegisterCommands(s *discordgo.Session, guildId string, opGuildId string) {
 		Name:        "hardstop",
 		Description: "hardstops the serivce",
 	})
-
 	if err != nil {
 		log.Printf(" error %v", err)
 	}
@@ -351,13 +357,11 @@ func RegisterCommands(s *discordgo.Session, guildId string, opGuildId string) {
 
 func ClearCommands(s *discordgo.Session, guildId string) {
 	cmds, err := s.ApplicationCommands(s.State.User.ID, guildId)
-
 	if err != nil {
 		log.Printf("Failed to fetch existing commands: %v", err)
 		return
 	}
 	for _, cmd := range cmds {
 		s.ApplicationCommandDelete(s.State.User.ID, guildId, cmd.ID)
-
 	}
 }
