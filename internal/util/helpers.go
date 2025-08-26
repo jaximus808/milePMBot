@@ -282,12 +282,17 @@ func CreateAccessRows(msgInstance *discordgo.InteractionCreate, DB DBClient, cha
 	var discordIDs []string
 	for _, member := range members {
 		// We only care about members who can actually view the channel.
-		perms, _ := s.State.UserChannelPermissions(member.User.ID, targetChannel.ID)
+		if member.User.Bot {
+			continue
+		}
+		perms, err := discord.DiscordSession.UserChannelPermissions(member.User.ID, targetChannel.ID)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
 		if perms&discordgo.PermissionViewChannel != 0 {
 			discordIDs = append(discordIDs, member.User.ID)
 		}
 	}
-	// this is SUPER wrong LOL
 	existingUserProfiles, err := DB.DBGetUserProfilesExists(discordIDs)
 	if err != nil {
 		return CreateHandleReport(false, err.Error())
