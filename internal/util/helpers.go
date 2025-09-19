@@ -36,12 +36,10 @@ func ParseMilestoneList(milestones *[]Milestone, currentMid int) *MilestoneRepor
 				fmt.Sprintf("> Milestone: %s\n> Description: %s\n> Due Date: %s", *milestone.DisplayName, *milestone.Description, milestone.DueDate.Format("January 2, 2006")),
 			)
 		} else {
-			if upcomingParsing {
-				milestoneMap.Previous = append(
-					milestoneMap.Previous,
-					fmt.Sprintf("> Milestone: %s\n> Description: %s\n> Due Date: %s", *milestone.DisplayName, *milestone.Description, milestone.DueDate.Format("January 2, 2006")),
-				)
-			}
+			milestoneMap.Previous = append(
+				milestoneMap.Previous,
+				fmt.Sprintf("> Milestone: %s\n> Description: %s\n> Due Date: %s", *milestone.DisplayName, *milestone.Description, milestone.DueDate.Format("January 2, 2006")),
+			)
 		}
 	}
 

@@ -16,9 +16,8 @@ const CommandPrefix = "/"
 
 var ActiveDBClient = util.SupaDB{}
 
-// Autocomplete interaction handler
+// A/milestone move direction:dwutocomplete interaction handler
 func autocompleteHandler(sess *discordgo.Session, interaction *discordgo.InteractionCreate) {
-
 	cmd := interaction.ApplicationCommandData().Name
 	switch cmd {
 	case "task":
@@ -27,6 +26,8 @@ func autocompleteHandler(sess *discordgo.Session, interaction *discordgo.Interac
 		handleSettingAutocomplete(sess, interaction)
 	case "help":
 		handleHelpAutocomplete(sess, interaction)
+	case "milestone":
+		handleMilestoneMoveAuto(sess, interaction)
 	}
 }
 
@@ -57,9 +58,33 @@ func handleHelpAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate
 			})
 			return
 		}
-
 	}
 }
+
+func handleMilestoneMoveAuto(s *discordgo.Session, i *discordgo.InteractionCreate) {
+	data := i.ApplicationCommandData()
+	for _, opt := range data.Options[0].Options {
+		if opt.Focused && opt.Name == "direction" {
+			_ = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionApplicationCommandAutocompleteResult,
+				Data: &discordgo.InteractionResponseData{
+					Choices: []*discordgo.ApplicationCommandOptionChoice{
+						{
+							Name:  "Forward",
+							Value: "next",
+						},
+						{
+							Name:  "Backward",
+							Value: "prev",
+						},
+					},
+				},
+			})
+			return
+		}
+	}
+}
+
 func handleSettingAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	data := i.ApplicationCommandData()
 	// Find which option is focused
@@ -170,7 +195,7 @@ func handleTaskAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate
 			}
 
 			// if this is true, we're getting stories that are user has assigned
-			var isAssigner = subComamndName == "reject" || subComamndName == "approve"
+			isAssigner := subComamndName == "reject" || subComamndName == "approve"
 
 			// log.Printf("%s %s %t %d", i.Member.User.ID, prefix, isAssigner, *activeProject.ProjectID)
 
@@ -211,7 +236,6 @@ func handleTaskAutocomplete(s *discordgo.Session, i *discordgo.InteractionCreate
 }
 
 func commandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
-
 	data := i.ApplicationCommandData()
 
 	var commandFunction func(msgInstance *discordgo.InteractionCreate, args *discordgo.ApplicationCommandInteractionDataOption, DB util.DBClient) *util.HandleReport
@@ -286,12 +310,10 @@ func commandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 // Command Handler
 func MainHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
-
 	switch i.Type {
 	case discordgo.InteractionApplicationCommand:
 		commandHandler(s, i)
 	case discordgo.InteractionApplicationCommandAutocomplete:
 		autocompleteHandler(s, i)
 	}
-
 }

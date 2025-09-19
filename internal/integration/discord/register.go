@@ -91,7 +91,7 @@ func RegisterCommands(s *discordgo.Session, guildId string, opGuildId string) {
 				},
 				{
 					Name:        "move",
-					Description: "end a project (OWNER ONLY)",
+					Description: "Move the project to another section (OWNER ONLY)",
 					Type:        discordgo.ApplicationCommandOptionSubCommand,
 					Options: []*discordgo.ApplicationCommandOption{
 						{
@@ -162,10 +162,11 @@ func RegisterCommands(s *discordgo.Session, guildId string, opGuildId string) {
 					Type:        discordgo.ApplicationCommandOptionSubCommand,
 					Options: []*discordgo.ApplicationCommandOption{
 						{
-							Type:        discordgo.ApplicationCommandOptionString,
-							Name:        "direction",
-							Description: "the direction to move the active milestone",
-							Required:    true,
+							Type:         discordgo.ApplicationCommandOptionString,
+							Name:         "direction",
+							Description:  "the direction to move the active milestone",
+							Required:     true,
+							Autocomplete: true,
 						},
 					},
 				},
