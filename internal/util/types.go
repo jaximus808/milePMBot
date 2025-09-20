@@ -284,14 +284,14 @@ type PendingAccess struct {
 	CreatedAt time.Time `json:"created_at"`
 	ID        int       `json:"id"`
 	ProjectID *int      `json:"project_id"`
-	DiscordID *int      `json:"discord_id"`
+	DiscordID *string   `json:"discord_id"`
 }
 
 type PendingAccessInsert struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	ID        int       `json:"id,omitempty"`
 	ProjectID *int      `json:"project_id,omitempty"`
-	DiscordID *int      `json:"discord_id,omitempty"`
+	DiscordID *string   `json:"discord_id,omitempty"`
 }
 
 type PendingAccessUpdate = PendingAccessInsert

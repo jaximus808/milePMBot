@@ -313,12 +313,8 @@ func CreateAccessRows(msgInstance *discordgo.InteractionCreate, DB DBClient, cha
 				ProjectID:  &projectID,
 			})
 		} else {
-			discordIDNum, err := strconv.Atoi(discordID)
-			if err != nil {
-				return CreateHandleReport(false, err.Error())
-			}
 			newPendingAccess = append(newPendingAccess, &PendingAccessInsert{
-				DiscordID: &discordIDNum,
+				DiscordID: &discordID,
 				ProjectID: &projectID,
 			})
 		}
